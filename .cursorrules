@@ -1,23 +1,8 @@
-Você está trabalhando no TemplateFastAPI.
-
-Leia e siga as regras em `.cursor/rules/`.
-
-Padrão principal:
-
-Endpoint -> Service -> CRUD -> Banco
-Endpoint -> Service -> Core Client -> API externa
-
-Regras essenciais:
-
-- Endpoints devem ser leves e chamar services.
-- Services concentram regra de negócio.
-- CRUD acessa banco e não contém regra de negócio pesada.
-- Core centraliza configurações, segurança e clients externos.
-- Schemas Pydantic não devem ser confundidos com models SQLAlchemy.
-- Testes devem cobrir services e endpoints.
-- Nunca exponha secrets, tokens, senhas, certificados ou `.env` real.
-- Responda e documente em português BR.
-
-Mantenha o README.md principal atualizado quando módulos, endpoints, services, integrações, testes ou variáveis de ambiente reais forem criados ou alterados. Documente apenas funcionalidades existentes ou recém-implementadas.
-
-- Mantenha o README do projeto sincronizado com mudanças reais e registre mudanças relevantes em uma seção `Alterações recentes` quando aplicável.
+Use o padrão Endpoint -> Service -> CRUD -> Banco.
+Para APIs externas, use Endpoint -> Service -> Core Client -> API externa.
+Não coloque regra de negócio em endpoints.
+Não coloque regra de negócio pesada em CRUD.
+Não gere secrets reais, tokens reais ou certificados reais.
+Quando alterar arquivo existente, entregue o arquivo completo corrigido.
+Mantenha o README do projeto atualizado com informações reais e registre alterações relevantes em Alterações recentes.
+Consulte .cursor/rules/README.md para entender o papel de cada rule.

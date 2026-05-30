@@ -1,77 +1,90 @@
-# Guia de aplicação das Cursor Rules em projetos FastAPI
+# Guia de aplicação das Cursor Rules em projetos existentes
 
-Voltar para o [README principal](../../README.md).
+Este guia explica como aplicar as rules em projetos FastAPI já existentes.
 
-Este guia explica como aplicar as rules em projetos novos ou existentes.
+Voltar para:
 
-## Prompts recomendados
+- [README principal](../../README.md)
+- [Explicação de cada rule](../../.cursor/rules/README.md)
+- [Prompts recomendados](./PROMPTS.md)
 
-Para facilitar o uso no dia a dia, este pacote inclui uma lista de prompts prontos para copiar e adaptar:
+## Objetivo
 
-[Ver lista completa de prompts recomendados](./PROMPTS.md)
-
-Use essa lista para:
-
-- iniciar um projeto novo
-- analisar um projeto existente
-- migrar endpoints legados para services
-- criar models, schemas, CRUDs, services e endpoints
-- criar testes automatizados
-- atualizar README e release notes
-
-## Aplicando em projeto novo
-
-Copie os arquivos abaixo para a raiz do projeto:
+Permitir que projetos já existentes sejam adaptados gradualmente para o padrão:
 
 ```text
-.cursor/
-AGENTS.md
-.cursorrules
-docs/cursor/
+Endpoint -> Service -> CRUD -> Banco
 ```
 
-Depois abra o projeto pela raiz no Cursor.
-
-## Aplicando em projeto existente
-
-Recomendação:
-
-1. Copie as rules para o projeto.
-2. Peça ao Cursor para analisar a estrutura sem alterar arquivos.
-3. Escolha um módulo pequeno para migrar primeiro.
-4. Crie ou ajuste a camada `services/`.
-5. Refatore endpoints para chamarem services.
-6. Mantenha CRUD apenas com acesso ao banco.
-7. Adicione testes gradualmente.
-8. Atualize README e release notes.
-
-Prompt recomendado para começar:
+E, para integrações externas:
 
 ```text
-Leia as rules em `.cursor/rules/`, o `AGENTS.md` e este guia em `docs/cursor/README.md`.
-Analise a estrutura atual deste projeto FastAPI e gere um plano de migração incremental.
-Não altere arquivos ainda.
+Endpoint -> Service -> Core Client -> API externa
 ```
 
-## README e release notes
+## Como aplicar em projeto existente
 
-Depois que um projeto começa a evoluir a partir do template, o README principal deve refletir o projeto real, não apenas o template.
+1. Copie a pasta `.cursor/` para a raiz do projeto.
+2. Copie `AGENTS.md` para a raiz.
+3. Copie `.cursorrules` para a raiz.
+4. Copie `docs/cursor/` para a pasta `docs/` do projeto.
+5. Abra o projeto pelo Cursor usando a raiz.
+6. Peça ao Cursor para analisar o projeto antes de alterar arquivos.
 
-Mantenha uma seção:
+Prompt recomendado:
+
+```text
+Leia as rules do projeto e o arquivo docs/cursor/README.md.
+Analise a estrutura atual deste projeto FastAPI e me diga quais pastas já seguem o padrão e quais precisam ser adaptadas.
+Não altere arquivos ainda. Apenas gere um plano de migração incremental.
+```
+
+## Estratégia de migração
+
+Não tente migrar tudo de uma vez.
+
+Recomenda-se:
+
+1. escolher um módulo pequeno
+2. criar ou ajustar schemas
+3. revisar model
+4. revisar CRUD
+5. criar service
+6. simplificar endpoint
+7. criar testes
+8. atualizar README e alterações recentes
+
+## Mantendo o README atualizado
+
+A rule `095-project-readme-sync-auto.mdc` orienta o Cursor a manter o README real do projeto atualizado conforme novos módulos forem criados.
+
+O README do projeto deve conter apenas informações reais da aplicação.
+
+Também é recomendado manter uma seção:
 
 ```md
 ## Alterações recentes
-
-| Data | Tipo | Módulo/Pasta | Alteração | Impacto |
-| ---- | ---- | ------------ | --------- | ------- |
 ```
 
-Registre apenas mudanças relevantes, como:
+Com tabela:
 
-- novo módulo
-- novo endpoint
-- nova integração
-- nova pasta
-- nova variável de ambiente
-- alteração arquitetural
-- novos testes
+```md
+| Data | Tipo | Módulo/Pasta | Alteração | Impacto |
+| ---- | ---- | ------------ | --------- | ------- |
+| 2026-05-30 | Adicionado | `services/` | Criada camada de services. | Endpoints passam a chamar services antes do CRUD. |
+```
+
+## Quando indicar necessidade de nova pasta
+
+Se o projeto começar a ter uma responsabilidade nova, o Cursor pode sugerir uma nova pasta no README ou na release note.
+
+Exemplos:
+
+```text
+workers/      -> tarefas assíncronas
+jobs/         -> rotinas agendadas
+adapters/     -> adaptação entre sistemas externos
+providers/    -> provedores específicos de terceiros
+```
+
+A sugestão deve ficar clara como sugestão, não como algo já implementado.
