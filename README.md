@@ -10,7 +10,7 @@ Endpoint -> Service -> Core Client -> API externa
 ```
 
 ## Documentações importantes
-
+- [Rules criadas para usar com o TemplateFastAPI](https://github.com/C-Trends-BPO/TemplateFastAPI)
 - [Explicação de cada rule](./.cursor/rules/README.md)
 - [Guia detalhado para aplicar em projetos existentes](./docs/cursor/README.md)
 - [Prompts recomendados para o Cursor](./docs/cursor/PROMPTS.md)
