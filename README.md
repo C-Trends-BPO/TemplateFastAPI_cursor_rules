@@ -2,13 +2,18 @@
 
 Repositório de rules para padronizar projetos FastAPI no Cursor.
 
-Este pacote foi criado para ser reutilizado pelo time em novos projetos e também em projetos FastAPI já existentes.
+Este pacote ajuda o time a aplicar uma arquitetura consistente baseada em:
 
-## Documentação principal
+```text
+Endpoint -> Service -> CRUD -> Banco
+Endpoint -> Service -> Core Client -> API externa
+```
 
-- [Guia detalhado de aplicação em projetos existentes](./docs/cursor/README.md)
-- [Prompts recomendados para usar no Cursor](./docs/cursor/PROMPTS.md)
+## Documentações importantes
+
 - [Explicação de cada rule](./.cursor/rules/README.md)
+- [Guia detalhado para aplicar em projetos existentes](./docs/cursor/README.md)
+- [Prompts recomendados para o Cursor](./docs/cursor/PROMPTS.md)
 
 ## Estrutura
 
@@ -37,21 +42,10 @@ docs/
 
 AGENTS.md
 .cursorrules
+README.md
 ```
 
-## Fluxo arquitetural esperado
-
-```text
-Endpoint -> Service -> CRUD -> Banco
-```
-
-Para integrações externas:
-
-```text
-Endpoint -> Service -> Core Client -> API externa
-```
-
-## Instalação em um projeto
+## Como aplicar em um projeto
 
 Copie para a raiz do projeto FastAPI:
 
@@ -59,27 +53,28 @@ Copie para a raiz do projeto FastAPI:
 .cursor/
 AGENTS.md
 .cursorrules
+```
+
+Opcionalmente, copie também:
+
+```text
 docs/cursor/
 ```
 
-Depois abra o projeto no Cursor pela raiz.
+A pasta `.cursor` precisa ficar na raiz aberta pelo Cursor.
 
-## Observação sobre README do projeto real
+## README do projeto real
 
-Este repositório possui seu próprio `README.md`, mas ao aplicar as rules em um projeto real, o README daquele projeto deve continuar sendo a documentação real da aplicação.
+Quando essas rules forem usadas em um projeto real, o README desse projeto deve ser mantido atualizado com informações reais, incluindo a seção:
 
-A rule abaixo orienta o Cursor a manter o README do projeto atualizado:
-
-```text
-.cursor/rules/095-project-readme-sync-auto.mdc
+```md
+## Alterações recentes
 ```
 
-Ela também orienta manter uma seção de alterações recentes no README do projeto.
+Exemplo:
 
-## Onde entender cada rule
-
-A explicação completa de cada rule está em:
-
-```text
-.cursor/rules/README.md
+```md
+| Data | Tipo | Módulo/Pasta | Alteração | Impacto |
+| ---- | ---- | ------------ | --------- | ------- |
+| 2026-05-30 | Adicionado | `services/` | Criada camada de services para regras de negócio. | Endpoints passam a chamar services antes do CRUD. |
 ```

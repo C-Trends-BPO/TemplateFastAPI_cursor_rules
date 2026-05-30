@@ -1,7 +1,58 @@
 ---
-description: Rule 100-task-workflow-agent.mdc
+description: Workflow para o Agent executar tarefas maiores seguindo o padrão do projeto.
 globs: "**/*"
 alwaysApply: false
 ---
 
-Consulte o arquivo README.md desta pasta para entender a finalidade desta rule.
+# Workflow para tarefas com Agent
+
+Antes de alterar o código, identifique qual camada será impactada:
+
+- `api/`
+- `services/`
+- `crud/`
+- `models/`
+- `schemas/`
+- `core/`
+- `tests/`
+- `docs/`
+
+## Para criar novo módulo
+
+1. Criar model, se houver tabela nova.
+2. Criar schemas.
+3. Criar CRUD.
+4. Criar service com regra de negócio.
+5. Criar endpoint chamando service.
+6. Registrar rota no router principal, se necessário.
+7. Criar testes básicos.
+8. Atualizar README/release notes se a mudança for relevante.
+
+## Para alterar endpoint existente
+
+1. Verificar se há regra de negócio no endpoint.
+2. Mover regra para service quando necessário.
+3. Manter endpoint leve.
+4. Ajustar testes da rota.
+5. Atualizar docs se mudar contrato da API.
+
+## Para alterar model/schema
+
+1. Verificar impacto em CRUD, service e endpoint.
+2. Ajustar schemas de Create, Update e Response.
+3. Verificar campos sensíveis.
+4. Atualizar testes.
+5. Atualizar README se houver mudança de contrato.
+
+## Saída esperada ao finalizar
+
+Ao concluir uma tarefa, explicar:
+
+- arquivos criados;
+- arquivos alterados;
+- arquivos removidos, se houver;
+- regras aplicadas;
+- comandos de teste recomendados;
+- observações ou pendências reais.
+
+Quando o usuário pedir ajuste em arquivo existente, entregar o arquivo completo corrigido.

@@ -1,8 +1,8 @@
-Use o padrão Endpoint -> Service -> CRUD -> Banco.
-Para APIs externas, use Endpoint -> Service -> Core Client -> API externa.
-Não coloque regra de negócio em endpoints.
-Não coloque regra de negócio pesada em CRUD.
-Não gere secrets reais, tokens reais ou certificados reais.
-Quando alterar arquivo existente, entregue o arquivo completo corrigido.
-Mantenha o README do projeto atualizado com informações reais e registre alterações relevantes em Alterações recentes.
-Consulte .cursor/rules/README.md para entender o papel de cada rule.
+Projeto FastAPI com padrão Endpoint -> Service -> CRUD -> Banco.
+Endpoints devem ser leves e chamar services.
+Services concentram regras de negócio, validações, normalizações e orquestrações.
+CRUD deve conter apenas acesso ao banco.
+Core centraliza configurações, segurança e clients externos.
+Não versionar secrets, tokens, senhas, certificados ou .env real.
+Quando criar ou alterar módulo relevante, atualizar o README real do projeto e a seção Alterações recentes.
+Consulte .cursor/rules/README.md para entender as rules.

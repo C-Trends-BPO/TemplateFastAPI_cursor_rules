@@ -1,7 +1,53 @@
 ---
-description: Rule 070-tests-auto.mdc
-globs: "**/*"
+description: Padrão para testes automatizados por camada usando pytest.
+globs: "tests/**/*.py"
 alwaysApply: false
 ---
 
-Consulte o arquivo README.md desta pasta para entender a finalidade desta rule.
+# Testes
+
+A pasta `tests/` deve seguir a estrutura do projeto.
+
+## Estrutura recomendada
+
+```text
+tests/
+├── conftest.py
+├── services/
+│   └── test_item_service.py
+└── api/
+    └── api_v1/
+        └── endpoints/
+            └── test_items_endpoint.py
+```
+
+## Testes de service
+
+- Testar regra de negócio.
+- Mockar CRUD com `AsyncMock` quando não for teste de integração.
+- Testar erros esperados, como 404, 400 e 409.
+- Testar normalizações e validações.
+
+## Testes de endpoint
+
+- Testar status code.
+- Testar payload de resposta.
+- Mockar service quando o foco for apenas a rota.
+- Usar `httpx.AsyncClient` quando o app for assíncrono.
+
+## Padrão recomendado
+
+```python
+@pytest.mark.asyncio
+async def test_create_item_deve_retornar_200(async_client):
+    response = await async_client.post("/api/v1/items/", json={"name": "Teste"})
+    assert response.status_code == 200
+```
+
+## Regras
+
+- Não depender de API externa real em teste unitário.
+- Não depender de banco real em teste unitário, exceto testes de integração claramente separados.
+- Não usar secrets reais em teste.
+- Criar fixtures reutilizáveis em `conftest.py`.
+- Nomear testes em português ou inglês de forma clara e consistente.

@@ -1,4 +1,4 @@
-# AGENTS.md
+# Instruções para agentes de código
 
 Este projeto segue o padrão:
 
@@ -7,22 +7,17 @@ Endpoint -> Service -> CRUD -> Banco
 Endpoint -> Service -> Core Client -> API externa
 ```
 
-## Regras principais
+Consulte:
 
-- Endpoints devem ser leves.
-- Services concentram regra de negócio.
-- CRUD acessa banco de dados.
-- Models representam tabelas.
-- Schemas representam entrada e saída da API.
-- Core centraliza recursos compartilhados e clients externos.
-- Tests validam endpoints, services e comportamentos principais.
-- README do projeto deve ser mantido atualizado com informações reais.
-- Alterações relevantes devem ser registradas em `Alterações recentes`.
+- `.cursor/rules/README.md` para entender cada rule;
+- `docs/cursor/README.md` para aplicar em projetos existentes;
+- `docs/cursor/PROMPTS.md` para prompts recomendados.
 
-Para detalhes, consulte:
+Regras principais:
 
-```text
-.cursor/rules/README.md
-docs/cursor/README.md
-docs/cursor/PROMPTS.md
-```
+- endpoint deve ser leve;
+- service contém regra de negócio;
+- CRUD contém apenas acesso ao banco;
+- schemas e models devem ficar separados;
+- não versionar secrets;
+- manter README do projeto real atualizado com alterações relevantes.

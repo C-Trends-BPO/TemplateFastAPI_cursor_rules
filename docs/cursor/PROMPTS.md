@@ -1,30 +1,25 @@
 # Prompts recomendados para usar no Cursor
 
-Este arquivo reúne prompts úteis para iniciar projetos novos, aplicar rules em projetos existentes e criar ou alterar módulos.
+[Voltar para o guia](./README.md)
 
-Voltar para:
-
-- [README principal](../../README.md)
-- [Guia de aplicação](./README.md)
-- [Explicação de cada rule](../../.cursor/rules/README.md)
-
-## Iniciar novo projeto com o template
+## Iniciar novo projeto
 
 ```text
-Leia as rules do projeto e analise a estrutura atual do template.
-Antes de criar código, me diga quais camadas serão usadas para o módulo que vou pedir.
-Siga o padrão Endpoint -> Service -> CRUD -> Banco.
+Leia as rules deste projeto e configure a estrutura inicial seguindo o padrão FastAPI definido.
+Crie apenas o necessário para iniciar o projeto, sem inventar módulos de negócio ainda.
+Explique quais arquivos foram criados ou alterados.
 ```
 
 ## Aplicar rules em projeto existente
 
 ```text
-Leia as rules do projeto e o arquivo docs/cursor/README.md.
-Analise a estrutura atual deste projeto FastAPI e me diga quais pastas já seguem o padrão e quais precisam ser adaptadas.
-Não altere arquivos ainda. Apenas gere um plano de migração incremental.
+Leia as rules do projeto e analise a estrutura atual.
+Não altere arquivos ainda.
+Me diga quais pastas e módulos já seguem o padrão Endpoint -> Service -> CRUD -> Banco e quais precisam ser ajustados.
+Monte um plano incremental de migração.
 ```
 
-## Criar novo módulo completo
+## Criar novo módulo
 
 ```text
 Crie o módulo [NOME_DO_MODULO] seguindo as rules do projeto.
@@ -45,86 +40,50 @@ Ao final, explique exatamente quais arquivos foram criados ou alterados.
 ## Criar ou alterar model
 
 ```text
-Crie/ajuste o model [NOME_DO_MODEL] seguindo o padrão do projeto.
-
-Regras:
-- model deve representar apenas a tabela e seus relacionamentos
-- não colocar regra de negócio no model
-- manter nomes de colunas claros
-- revisar se será necessário schema, CRUD, service, endpoint e teste
-- entregar o arquivo completo ajustado
+Crie/altere o model [NOME_DO_MODEL] seguindo o padrão SQLAlchemy do projeto.
+Depois verifique impactos em schemas, CRUD, service, endpoint e testes.
+Não coloque regra de negócio dentro do model.
+Entregue os arquivos completos alterados.
 ```
 
 ## Criar ou alterar schema
 
 ```text
-Crie/ajuste os schemas do módulo [NOME_DO_MODULO].
-
-Use o padrão:
-- Base
-- Create
-- Update
-- Response ou InDbBase
-
-Regras:
-- não misturar schema com model SQLAlchemy
-- separar entrada e saída da API
-- usar campos opcionais no Update quando fizer sentido
-- entregar o arquivo completo ajustado
+Crie/altere os schemas de [NOME_DO_MODULO] seguindo o padrão Base, Create, Update e Response.
+Garanta que campos obrigatórios fiquem no Create, campos opcionais no Update e campos sensíveis não sejam expostos no Response.
+Entregue o arquivo completo ajustado.
 ```
 
 ## Criar ou alterar endpoint
 
 ```text
-Ajuste o endpoint [NOME_DO_ENDPOINT] para seguir o padrão do projeto.
-
-Regras:
-- endpoint deve ser leve
-- endpoint deve chamar service
-- remover regra de negócio da rota
-- manter response_model
-- usar Depends para dependências
-- não chamar API externa diretamente no endpoint
-- entregar o arquivo completo ajustado
+Crie/altere o endpoint de [NOME_DO_MODULO] seguindo o padrão do projeto.
+O endpoint deve ser leve, usar response_model, Depends e chamar o service.
+Não coloque regra de negócio no endpoint.
+Entregue o arquivo completo ajustado.
 ```
 
 ## Criar ou alterar service
 
 ```text
-Crie/ajuste o service [NOME_DO_SERVICE].
-
-Regras:
-- service deve conter regra de negócio
-- validar duplicidades e transições de status quando necessário
-- chamar CRUD para banco
-- chamar core client para API externa
-- tratar erros de negócio com mensagens claras
-- entregar o arquivo completo ajustado
+Crie/altere o service de [NOME_DO_MODULO].
+Coloque nele as validações, normalizações, regras de negócio e orquestração entre CRUDs ou clients externos.
+Não coloque queries complexas no service se elas pertencem ao CRUD.
+Entregue o arquivo completo ajustado.
 ```
 
 ## Criar testes
 
 ```text
-Crie testes para o módulo [NOME_DO_MODULO].
-
-Regras:
-- testes de endpoint em tests/api/api_v1/endpoints
-- testes de service em tests/services
-- usar pytest e pytest-asyncio quando necessário
-- mockar chamadas externas
-- não depender de API externa real
-- testar sucesso e erro principal
+Crie testes para [NOME_DO_MODULO] seguindo as rules.
+Inclua testes de service com AsyncMock e testes de endpoint com o service mockado quando fizer sentido.
+Não use API externa real nem secrets reais.
 ```
 
 ## Atualizar README e release notes
 
 ```text
-Atualize o README do projeto com informações reais sobre as alterações feitas.
-
-Regras:
-- não inventar funcionalidades
-- documentar apenas o que existe ou foi implementado
-- atualizar seção de comandos se necessário
-- atualizar variáveis de ambiente se necessário
-- adicionar linha em Alterações recentes com Data, Tipo, Módulo/Pasta, Alteração e Impacto
+Revise o README do projeto e atualize apenas com informações reais do que existe.
+Se houve alteração relevante, adicione uma linha na seção Alterações recentes com Data, Tipo, Módulo/Pasta, Alteração e Impacto.
+Não documente funcionalidades futuras como se já existissem.
 ```
