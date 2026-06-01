@@ -67,7 +67,65 @@ Com tabela:
 
 Use essa tabela para registrar novas pastas, módulos, endpoints, integrações, variáveis de ambiente e mudanças arquiteturais importantes.
 
+
+
+## Descobrir regras de negócio de projeto existente
+
+Depois de copiar as rules para um projeto já em andamento, use a rule manual:
+
+```text
+120-business-rules-discovery-manual.mdc
+```
+
+Ela deve ser usada antes de criar novos endpoints em projetos que já possuem regras importantes espalhadas pelo código.
+
+Prompt recomendado:
+
+```text
+Use a rule 120-business-rules-discovery-manual.mdc.
+Analise todo o diretório do projeto atual para entender as regras de negócio principais.
+Não altere arquivos ainda.
+Liste as regras confirmadas pelo código/documentação, as regras inferidas que precisam de confirmação e faça perguntas objetivas para compor novas Cursor Rules específicas de negócio.
+Depois da minha confirmação, crie os arquivos .mdc necessários em .cursor/rules/ seguindo o padrão 2xx-business-<dominio>-auto.mdc.
+```
+
+Quando uma nova regra de negócio for confirmada durante o desenvolvimento, atualize uma rule de negócio existente ou crie uma nova rule específica.
+
+## Criar abstrações reutilizáveis no core
+
+A rule `115-reusable-core-abstractions-auto.mdc` orienta o Cursor a avaliar novas classes antes de criá-las.
+
+Se a classe for reutilizável, por exemplo envio de e-mail, storage, PDF, QR Code, mensageria, cache, autenticação externa ou client genérico, considere criar em `core/` como classe abstrata ou base reutilizável.
+
+Se a classe for regra de negócio de um módulo específico, mantenha em `services/`.
+
 ## Links úteis
 
 - [Explicação de cada rule](../../.cursor/rules/README.md)
 - [Prompts recomendados](./PROMPTS.md)
+
+
+## Uso opcional de `.cursor/business-rules/`
+
+Em projetos já em andamento, pode ser útil criar a pasta:
+
+```text
+.cursor/business-rules/
+```
+
+Ela deve ser usada como área de documentação e rascunho para regras de negócio descobertas durante a análise do projeto.
+
+Use essa pasta para:
+
+- regras descobertas ainda não transformadas em rule;
+- perguntas pendentes para o usuário ou time de negócio;
+- decisões de negócio tomadas durante a implementação;
+- lista de rules candidatas.
+
+Atenção: o Cursor carrega as Project Rules a partir de `.cursor/rules/*.mdc`. Portanto, regras confirmadas que precisam orientar novas implementações devem virar `.mdc` dentro de `.cursor/rules/`.
+
+Fluxo recomendado:
+
+```text
+Análise do projeto -> .cursor/business-rules/ -> confirmação -> .cursor/rules/2xx-business-<dominio>-auto.mdc
+```

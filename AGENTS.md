@@ -21,3 +21,13 @@ Regras principais:
 - schemas e models devem ficar separados;
 - não versionar secrets;
 - manter README do projeto real atualizado com alterações relevantes.
+
+
+Regras complementares:
+
+- antes de criar uma classe nova, avaliar se ela é reutilizável e se deve virar abstração em `core/`;
+- quando uma regra de negócio importante for descoberta, criar ou atualizar uma Cursor Rule específica em `.cursor/rules/`;
+- para projetos existentes, usar a rule manual `120-business-rules-discovery-manual.mdc` antes de criar endpoints em domínios com regras complexas.
+
+
+Quando mapear regras de negócio de projetos existentes, use `.cursor/business-rules/` apenas como documentação auxiliar. Rules ativas devem continuar em `.cursor/rules/*.mdc`.

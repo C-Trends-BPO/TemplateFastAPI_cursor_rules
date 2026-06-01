@@ -87,3 +87,74 @@ Revise o README do projeto e atualize apenas com informações reais do que exis
 Se houve alteração relevante, adicione uma linha na seção Alterações recentes com Data, Tipo, Módulo/Pasta, Alteração e Impacto.
 Não documente funcionalidades futuras como se já existissem.
 ```
+
+
+## Analisar regras de negócio de projeto existente e criar rules específicas
+
+```text
+Use a rule 120-business-rules-discovery-manual.mdc.
+
+Analise todo o diretório do projeto atual para entender as regras de negócio principais.
+Não altere arquivos ainda.
+
+Quero que você:
+1. identifique os módulos principais do projeto;
+2. liste as regras de negócio confirmadas pelo código e pela documentação;
+3. separe regras apenas inferidas e que precisam de confirmação;
+4. faça perguntas objetivas para completar lacunas;
+5. sugira quais novas rules devem ser criadas;
+6. proponha nomes de arquivos no padrão .cursor/rules/2xx-business-<dominio>-auto.mdc;
+7. depois da minha confirmação, crie ou atualize as rules necessárias.
+
+Essas rules devem ajudar o Cursor a criar e alterar novos endpoints sem descumprir regras de negócio existentes.
+```
+
+## Registrar uma nova regra de negócio descoberta
+
+```text
+Durante esta alteração identificamos uma nova regra de negócio:
+[DESCREVA_A_REGRA]
+
+Verifique se já existe alguma rule de negócio que cubra essa regra.
+Se existir, atualize a rule existente.
+Se não existir, crie uma nova rule em .cursor/rules/ usando o padrão 2xx-business-<dominio>-auto.mdc.
+
+Atualize também .cursor/rules/README.md e, se for relevante para o projeto, o README principal e a seção Alterações recentes.
+```
+
+## Criar classe reutilizável no core
+
+```text
+Preciso criar uma classe para [DESCREVER_CAPACIDADE].
+
+Antes de implementar, use a rule 115-reusable-core-abstractions-auto.mdc e avalie se essa classe pode ser reutilizada futuramente em outros módulos.
+
+Se for reutilizável, crie uma abstração em core/ com classe base/abstrata e uma implementação concreta inicial.
+Se for específica do domínio atual, crie no service do módulo.
+
+Ao final, explique por que a classe ficou em core/ ou services/.
+```
+
+
+## Prompt para mapear regras de negócio usando pasta auxiliar
+
+```text
+Use a rule 120-business-rules-discovery-manual.mdc.
+
+Analise todo o diretório do projeto atual para entender as regras de negócio principais.
+Não altere endpoints, services, schemas, models ou CRUDs ainda.
+
+Use também a pasta .cursor/business-rules/ como área de documentação auxiliar.
+
+Quero que você:
+1. identifique os módulos principais do projeto;
+2. liste regras confirmadas pelo código e pela documentação;
+3. registre hipóteses em .cursor/business-rules/discovered-rules.md;
+4. registre perguntas em .cursor/business-rules/pending-questions.md;
+5. registre decisões confirmadas em .cursor/business-rules/decisions.md;
+6. sugira quais regras devem virar .mdc ativo em .cursor/rules/;
+7. proponha nomes no padrão .cursor/rules/2xx-business-<dominio>-auto.mdc;
+8. aguarde minha confirmação antes de criar ou atualizar qualquer rule ativa.
+
+Depois da confirmação, crie ou atualize as rules necessárias e atualize os READMEs relacionados.
+```

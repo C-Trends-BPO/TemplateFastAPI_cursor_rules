@@ -88,6 +88,40 @@ Define um fluxo de trabalho para o Agent executar tarefas maiores com consistên
 
 Define estilo geral para código Python, imports, async, logs, erros e organização.
 
+### `115-reusable-core-abstractions-auto.mdc`
+
+Define que, antes de criar uma nova classe Python, o Cursor deve avaliar se ela pode ser reutilizada futuramente. Se a classe representar uma capacidade técnica genérica, como envio de e-mail, storage, geração de PDF, QR Code, mensageria, autenticação externa ou client reutilizável, ela deve ser considerada para criação em `core/` como abstração ou classe base.
+
+Essa rule ajuda a evitar duplicação e impede que capacidades reutilizáveis fiquem presas dentro de um service específico.
+
+### `120-business-rules-discovery-manual.mdc`
+
+Rule manual para projetos já em andamento. Ela orienta o Cursor a analisar o diretório inteiro do projeto, identificar regras de negócio reais, fazer perguntas ao usuário e propor novas rules específicas para garantir que novos endpoints respeitem as regras existentes.
+
+Use essa rule manualmente quando for mapear um projeto legado ou quando uma nova regra de negócio importante for descoberta durante o desenvolvimento.
+
+
+## Sobre `.cursor/business-rules/`
+
+É permitido criar uma pasta auxiliar:
+
+```text
+.cursor/business-rules/
+```
+
+Essa pasta serve para documentação de apoio sobre regras de negócio descobertas em projetos existentes, como perguntas pendentes, decisões e rascunhos.
+
+Ela **não deve substituir** `.cursor/rules/`.
+
+- Rules ativas do Cursor: `.cursor/rules/*.mdc`
+- Documentação auxiliar de negócio: `.cursor/business-rules/*.md`
+
+Quando uma regra de negócio for confirmada e precisar orientar o Cursor em futuras alterações, crie ou atualize uma rule `.mdc` em `.cursor/rules/`, normalmente no padrão:
+
+```text
+.cursor/rules/2xx-business-<dominio>-auto.mdc
+```
+
 ## Quando criar uma nova rule
 
 Crie uma nova rule quando houver um padrão recorrente que o time quer aplicar automaticamente, por exemplo:
@@ -97,7 +131,9 @@ Crie uma nova rule quando houver um padrão recorrente que o time quer aplicar a
 - padrão de migrations;
 - padrão de workers/jobs;
 - padrão de deploy;
-- padrão de logs/auditoria.
+- padrão de logs/auditoria;
+- regra de negócio específica de um domínio;
+- regra reutilizável descoberta em projeto existente.
 
 ## Quando não criar uma nova rule
 
