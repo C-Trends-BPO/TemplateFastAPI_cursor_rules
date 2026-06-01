@@ -1,0 +1,185 @@
+---
+description: Rule manual — FastAPI start manual, .env, perfis homolog/prod e debug Cursor (launch.json).
+globs: "{.env,.env.example,pytest.ini,main.py,core/config.py,core/example-config.py,.vscode/launch.json,README.md}"
+alwaysApply: false
+---
+
+# Rule manual: FastAPI — `.env`, start manual e debug
+
+**Chame esta rule manualmente** (`@085-fastapi-env-debug-manual`) ao migrar ou configurar ambiente e debug em projetos FastAPI com **uvicorn** ou **python main.py**.
+
+Os `globs` limitam contexto automático aos arquivos listados em **Arquivos obrigatórios**; não use `alwaysApply`. Para migração completa, invoque a rule explicitamente no chat.
+
+Complementa `080-security-config-always.mdc`: secrets ficam no `.env`, nunca no código versionado.
+
+## Arquivos obrigatórios
+
+| Arquivo | Versionar? | Função |
+| ------- | ----------- | ------ |
+| `.env` | **Não** (gitignore) | Credenciais e ambiente local |
+| `.env.example` | Sim | Template fictício; prod como padrão + bloco homolog comentado |
+| `core/config.py` | **Não** (gitignore) | Settings real lendo `.env` |
+| `core/example-config.py` | Sim | Defaults para CI/dev; copiar → `config.py` |
+| `.vscode/launch.json` | Sim | Debug FastAPI + pytest |
+| `pytest.ini` | Sim (se houver integração) | marker `integration` |
+
+## `core/config.py` e `core/example-config.py`
+
+Padrão mínimo em ambos:
+
+```python
+from pathlib import Path
+from pydantic_settings import BaseSettings
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ENV_FILE = PROJECT_ROOT / ".env"
+
+
+class Settings(BaseSettings):
+    SECRET_KEY: str
+    DEBUG: bool = False
+    API_V1_STR: str = "/api"
+    ROOT_PATH: str = "/api-{nome-projeto}"      # ADAPTAR
+    PROJECT_NAME: str = "{Nome Projeto}"        # ADAPTAR
+    # demais campos do domínio...
+
+    class Config:
+        case_sensitive = True
+        env_file = str(ENV_FILE)
+        env_file_encoding = "utf-8"
+
+
+settings = Settings()
+```
+
+Regras:
+
+- **Nunca** `if DEBUG:` no corpo da classe para escolher host/credencial — isso não roda em runtime.
+- **Nunca** credenciais reais em `config.py` ou `example-config.py`.
+- `example-config.py` pode ter defaults fictícios (`changeme`) para campos obrigatórios no CI.
+- Montar URIs de banco via `@validator` a partir de `PSQL_*`, `SQL_*`, etc., ou aceitar URI completa opcional.
+
+CI: `cp core/example-config.py core/config.py` antes dos testes.
+
+## `.env.example`
+
+Estrutura:
+
+1. Cabeçalho com `Copy-Item .env.example .env` (PowerShell).
+2. Aviso: valores com `#`, `$`, espaços ou `=` **entre aspas**.
+3. Seção **produção** (`DEBUG=false`, hosts prod, `ROOT_PATH` prod).
+4. Bloco **homologação comentado** no final (`DEBUG=true`, `ROOT_PATH` homolog, hosts homolog).
+5. Variáveis de teste de integração (se existirem): `INTEGRATION_TEST_*`.
+
+Perfil de ambiente (adaptar por projeto):
+
+| Variável | Produção | Homologação |
+| -------- | -------- | ----------- |
+| `DEBUG` | `false` | `true` |
+| `ROOT_PATH` | `/api-{projeto}` | `/hg-api-{projeto}` |
+| `PROJECT_NAME` | nome prod | `Homologação {Nome}` |
+| `PSQL_HOST` | host prod | host homolog |
+
+## `.vscode/launch.json`
+
+Criar/atualizar com **4 configurações**. Usar `debugpy`, **sem** `--reload` (reload quebra breakpoints).
+
+Substituir placeholders ao migrar:
+
+- `{APP_MODULE}` → ex.: `main:app`
+- `{ROOT_PATH_HML}`, `{ROOT_PATH_PROD}`, `{PSQL_HOST_HML}`, `{PROJECT_NAME_HML}`
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "FastAPI (produção)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["main:app", "--host", "0.0.0.0", "--port", "8001"],
+      "jinja": true,
+      "justMyCode": true,
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "FastAPI (homologação — sobrescreve .env)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["main:app", "--host", "0.0.0.0", "--port", "8000"],
+      "jinja": true,
+      "justMyCode": true,
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "DEBUG": "true",
+        "ROOT_PATH": "{ROOT_PATH_HML}",
+        "PSQL_HOST": "{PSQL_HOST_HML}",
+        "PROJECT_NAME": "{PROJECT_NAME_HML}"
+      },
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Pytest (unitários)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/", "-m", "not integration", "-v"],
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Pytest (integração homolog)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/integration/", "-m", "integration", "-v"],
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
+```
+
+Convenções:
+
+- **Homolog** → porta `8000`; **prod** → porta `8001` (evita conflito se ambos forem debugados).
+- Config homolog usa `env` para sobrescrever `.env` só na sessão de debug.
+- Config prod confia no `.env` (valores de produção).
+- Parar uvicorn do terminal antes de F5 (mesma porta).
+
+Se o projeto **não** tiver testes de integração, omitir a 4ª configuração e o marker `integration` no pytest.
+
+## `main.py` e execução manual
+
+- Terminal com hot reload: `uvicorn main:app --reload --host 0.0.0.0 --port 8000`
+- Debug (F5): uvicorn **sem** `--reload` via `launch.json`.
+- `python main.py` pode chamar `uvicorn.run("main:app", reload=True)` apenas para uso em terminal, não para debug.
+
+## README do projeto
+
+Documentar:
+
+1. `Copy-Item .env.example .env` e `Copy-Item core/example-config.py core/config.py`
+2. Tabela de variáveis principais (`DEBUG`, `ROOT_PATH`, hosts)
+3. Comandos PowerShell homolog vs prod (`.env` ou `$env:VAR`)
+4. Seção **Debug**: F5, configs do `launch.json`, parar terminal, validar com:
+   `python -c "from core.config import settings; print(settings.DEBUG, settings.ROOT_PATH, settings.PSQL_HOST)"`
+
+## Checklist de migração (projeto existente)
+
+1. Extrair secrets de `config.py` → `.env`; deixar `example-config.py` com fictícios.
+2. Adicionar `PROJECT_ROOT` + `env_file` no `BaseSettings`.
+3. Criar `.env.example` e garantir `.env` no `.gitignore`.
+4. Criar `.vscode/launch.json` (adaptar placeholders).
+5. Ajustar CI para copiar `example-config.py`.
+6. Adicionar marker `integration` se aplicável.
+7. Atualizar README (executar + debug).
+
+## Ao criar ou alterar estes arquivos
+
+- Gerar `.env.example` completo, nunca `.env` real.
+- Manter `launch.json` alinhado ao template acima.
+- Não adicionar `--reload` nas configs de debug.
