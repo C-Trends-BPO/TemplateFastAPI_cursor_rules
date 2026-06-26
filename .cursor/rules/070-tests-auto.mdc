@@ -51,3 +51,20 @@ async def test_create_item_deve_retornar_200(async_client):
 - Não usar secrets reais em teste.
 - Criar fixtures reutilizáveis em `conftest.py`.
 - Nomear testes em português ou inglês de forma clara e consistente.
+
+## Testes de integração
+
+- Marcar com `@pytest.mark.integration` e registrar o marker em `pytest.ini`.
+- Colocar em `tests/integration/` quando possível.
+- Exigem `.env` com credenciais de homologação — **não rodam no CI**.
+- Rodar localmente: `python -m pytest tests/integration/ -m integration -v`.
+
+## CI (GitHub Actions)
+
+Pipeline, encoding UTF-8 de `requirements.txt` e config de CI: ver **`075-github-actions-ci-auto.mdc`**.
+
+Resumo:
+
+- CI executa apenas `pytest -m "not integration"`.
+- `requirements.txt` deve estar em **UTF-8** (UTF-16 quebra `pip` no Linux).
+- Copiar `core/example-config.py` → `core/config.py` no job antes dos testes.

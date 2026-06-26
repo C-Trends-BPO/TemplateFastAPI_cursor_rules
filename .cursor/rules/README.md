@@ -68,9 +68,17 @@ Define regras para clients externos, OAuth2, API Key, Bearer Token, Basic Auth, 
 
 Define estrutura e padrão de testes usando pytest, AsyncMock e testes por camada.
 
+### `075-github-actions-ci-auto.mdc`
+
+Define pipeline GitHub Actions para pytest unitário: template `ci.yml`, env fictício de CI, cópia de `example-config.py`, marker `integration` fora do pipeline e **UTF-8 obrigatório** em `requirements.txt` (com step de verificação e comando de correção). Template em `docs/cursor/templates/ci.yml`.
+
 ### `080-security-config-always.mdc`
 
 Define regras globais de segurança para não versionar secrets, tokens, senhas, certificados ou `.env` real.
+
+### `085-fastapi-env-debug-manual.mdc`
+
+Rule **manual** para FastAPI com start manual: `core/config.py` lendo `.env`, `core/example-config.py` para CI, `.env.example` com perfis prod/homolog e `.vscode/launch.json`. Invocar com `@085-fastapi-env-debug-manual`. Globs limitados aos arquivos de config/debug; `alwaysApply: false`. Templates em `docs/cursor/templates/`.
 
 ### `090-docs-readme-auto.mdc`
 
@@ -99,6 +107,18 @@ Essa rule ajuda a evitar duplicação e impede que capacidades reutilizáveis fi
 Rule manual para projetos já em andamento. Ela orienta o Cursor a analisar o diretório inteiro do projeto, identificar regras de negócio reais, fazer perguntas ao usuário e propor novas rules específicas para garantir que novos endpoints respeitem as regras existentes.
 
 Use essa rule manualmente quando for mapear um projeto legado ou quando uma nova regra de negócio importante for descoberta durante o desenvolvimento.
+
+### `200-business-auth-token-auto.mdc`
+
+Regras de autenticação JWT: login, refresh, validate, arquitetura multi-sistema, validade de 1 hora, erros unificados, logs e rate limit.
+
+### `210-business-auth-permissions-auto.mdc`
+
+Regras de resolução de permissões Django: grupos, permissões diretas, `is_staff`, `content_type_id` por sistema integrado.
+
+### `220-business-arancia-messager-auto.mdc`
+
+Regras do endpoint Arancia Messager: `content_type_id=31`, contrato de resposta sem `is_staff`.
 
 
 ## Sobre `.cursor/business-rules/`
