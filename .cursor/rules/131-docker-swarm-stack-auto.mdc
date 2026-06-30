@@ -1,0 +1,208 @@
+---
+description: Docker Swarm — Dockerfile FastAPI, stack.yml, .dockerignore e .env.example para deploy em produção.
+globs: "{Dockerfile,Dockerfile.*,deploy/**,.dockerignore,.env.example,.editorconfig,.gitattributes}"
+alwaysApply: false
+---
+
+# Docker Swarm — stack e container (FastAPI)
+
+Complementa `130-fastapi-swarm-deploy-manual.mdc`, `075-github-actions-ci-auto.mdc`, `080-security-config-always.mdc` e `333-cursor_rule_fastapi_opentelemetry_loki (1).mdc`.
+
+Contexto completo da infra: `docs/contexto_infra_swarm_cursor.md`.
+
+**Antes de gerar ou alterar estes arquivos**, confirmar com o usuário: `APP_PORT`, `STACK_NAME`, módulo ASGI (`main:app`) e hostname curto — ver rule `130`.
+
+## Arquivos envolvidos
+
+| Arquivo | Função |
+| ------- | ------ |
+| `Dockerfile` | Imagem Python + Gunicorn/UvicornWorker |
+| `.dockerignore` | Excluir `.env`, caches, `.git` |
+| `deploy/stack.yml` | Serviço Swarm com `mode: host` |
+| `deploy/scripts/force-image-rollout.sh` | Alinhar 3/3 na mesma tag |
+| `.env.example` | Template sem secrets reais |
+| `.editorconfig` / `.gitattributes` | UTF-8 + LF em `requirements.txt` |
+
+Templates copiáveis: `docs/cursor/templates/Dockerfile.fastapi`, `dockerignore`, `deploy/stack.yml`, `deploy/scripts/force-image-rollout.sh`, `env-example-swarm.env`.
+
+## Dockerfile FastAPI
+
+Requisitos:
+
+- Base `python:3.12-slim` (ou alinhar à versão do projeto).
+- Instalar `curl` (healthcheck do Swarm).
+- `gunicorn` e `uvicorn` em `requirements.txt`.
+- **`ARG CACHE_BUST`** + `RUN test -n "${CACHE_BUST}"` **antes** de `COPY . .` — obrigatório em runner self-hosted.
+- `EXPOSE` com `APP_PORT` definido após perguntar ao usuário.
+- `CMD` com `{ASGI_MODULE}` e `uvicorn.workers.UvicornWorker`.
+
+```dockerfile
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl build-essential libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+ARG CACHE_BUST
+RUN test -n "${CACHE_BUST}"
+
+COPY . .
+
+ARG APP_PORT=8010
+EXPOSE ${APP_PORT}
+
+CMD ["sh", "-c", "gunicorn main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${APP_PORT} --workers 4 --timeout 60"]
+```
+
+Substituir `main:app` e `APP_PORT` conforme o projeto. O `command` em `deploy/stack.yml` **sobrescreve** o `CMD` em produção.
+
+## `deploy/stack.yml` — pontos críticos
+
+| Item | Valor / regra |
+| ---- | ------------- |
+| `ports` | `mode: host` — HAProxy acessa cada nó diretamente |
+| `update_config.order` | **`stop-first`** — obrigatório com `mode: host` |
+| `replicas` | `3` com `max_replicas_per_node: 1` |
+| `networks` | `app_network` externa |
+| `hostname` | `"{app-curto}-{{.Node.Hostname}}"` |
+| `healthcheck` | `curl -f http://localhost:$${APP_PORT}/health` |
+| `command` | Gunicorn explícito (não depender só do CMD da imagem) |
+
+```yaml
+version: "3.8"
+
+services:
+  web:
+    image: ${IMAGE}
+    hostname: "minha-api-{{.Node.Hostname}}"
+    command: >
+      gunicorn main:app
+      -k uvicorn.workers.UvicornWorker
+      --bind 0.0.0.0:${APP_PORT}
+      --workers 4
+      --timeout 60
+    ports:
+      - target: ${APP_PORT}
+        published: ${APP_PORT}
+        protocol: tcp
+        mode: host
+    networks:
+      - app_network
+    environment:
+      APP_PORT: ${APP_PORT}
+      OTEL_APPEND_IP_SUFFIX: ${OTEL_APPEND_IP_SUFFIX}
+      # demais variáveis do .env do servidor...
+    deploy:
+      replicas: 3
+      placement:
+        max_replicas_per_node: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first
+        failure_action: rollback
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:$${APP_PORT}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  app_network:
+    external: true
+```
+
+### Observabilidade no Swarm
+
+No `.env` do servidor (`/opt/envs/{app}.env`):
+
+```env
+OTEL_APPEND_IP_SUFFIX=False
+```
+
+Repassar `OTEL_ENABLED`, `OTEL_APPEND_ENV`, `OTEL_APPEND_IP_SUFFIX`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `LOKI_URL`, `LOG_LEVEL` no `environment` da stack. Complementa rule `333` — no Swarm **não** anexar octeto de IP ao nome do app.
+
+## `.dockerignore`
+
+Não incluir `.env`, `.venv`, `.git`, caches de teste. Template em `docs/cursor/templates/dockerignore`.
+
+## `.env.example` (Swarm)
+
+- Nunca commitar `.env` real.
+- Incluir `APP_PORT`, `APP_ENV`, `DATABASE_URL`, `ALLOWED_ORIGINS`, `OTEL_APPEND_IP_SUFFIX=False`.
+- Documentar caminho no servidor: `/opt/envs/{app}.env` com `chmod 600`.
+- Template: `docs/cursor/templates/env-example-swarm.env`.
+
+## `requirements.txt` — UTF-8
+
+Ver rule `075`: arquivo em **UTF-8** (nunca UTF-16). Incluir:
+
+```text
+gunicorn
+uvicorn[standard]
+```
+
+## `.editorconfig` e `.gitattributes`
+
+Forçar UTF-8 e LF para evitar quebra de `pip install` no build Linux:
+
+```ini
+# .editorconfig
+root = true
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+```
+
+```gitattributes
+requirements.txt text eol=lf
+requirements-dev.txt text eol=lf
+```
+
+## `deploy/scripts/force-image-rollout.sh`
+
+Script genérico para alinhar réplicas na mesma tag quando o rolling update ficar inconsistente:
+
+```bash
+bash deploy/scripts/force-image-rollout.sh <STACK_NAME> ghcr.io/org/repo:<sha>
+```
+
+Usa `--update-order stop-first` e `--with-registry-auth`. Executar no **manager** (`python-app-01`).
+
+## Erros comuns
+
+| Sintoma | Causa provável | Solução |
+| ------- | -------------- | ------- |
+| `host-mode port already in use` + rollback | `start-first` com porta `mode: host` | `update_config.order: stop-first` |
+| Tasks `Rejected` / `No such image` | Imagem não no registry ou sem auth | `docker pull` no workflow; `--with-registry-auth` |
+| Réplicas com tags diferentes | Rolling update incompleto | `force-image-rollout.sh` no manager |
+| Healthcheck falha após ~2 min | Endpoint `/health` ausente ou porta errada | Criar `GET /health`; validar `APP_PORT` |
+| `Invalid requirement` no build | `requirements.txt` UTF-16 | Corrigir encoding (rule `075`) |
+| HTML/código antigo após deploy | Cache `COPY . .` no runner | `CACHE_BUST=${{ github.sha }}` no build |
+
+## Proibido
+
+- Assumir `APP_PORT` 8000/8010 sem perguntar ao usuário.
+- Usar `start-first` com `mode: host`.
+- Commitar `.env` real ou secrets.
+- Banco/Redis/uploads dentro do container.
+- Omitir `curl` na imagem.
+- Omitir `command` Gunicorn na stack.
+
+## Ao criar ou alterar estes arquivos
+
+1. Confirmar `APP_PORT`, `STACK_NAME` e ASGI module (rule `130`).
+2. Garantir endpoint `GET /health` → `{"status": "ok"}`.
+3. Validar `stop-first`, `app_network`, `mode: host`.
+4. Incluir variáveis OTEL com `OTEL_APPEND_IP_SUFFIX=False` no `.env.example`.
+5. Documentar no README e linha em **Alterações recentes**.

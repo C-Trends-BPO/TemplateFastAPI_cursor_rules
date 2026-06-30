@@ -108,6 +108,18 @@ Rule manual para projetos já em andamento. Ela orienta o Cursor a analisar o di
 
 Use essa rule manualmente quando for mapear um projeto legado ou quando uma nova regra de negócio importante for descoberta durante o desenvolvimento.
 
+### `130-fastapi-swarm-deploy-manual.mdc`
+
+Rule **manual** para adaptar FastAPI a produção no Docker Swarm (HAProxy → Swarm em `192.168.0.223/224/225`). Invocar com `@130-fastapi-swarm-deploy-manual`. **Gate obrigatório:** perguntar `APP_PORT`, `STACK_NAME`, módulo ASGI e domínio/CORS antes de gerar arquivos. Orquestra Dockerfile, `deploy/stack.yml`, `deploy-swarm.yml`, `/health` e `.env.example`. Complementa `085` (dev) e `333` (OTEL; no Swarm `OTEL_APPEND_IP_SUFFIX=False`). Contexto: `docs/contexto_infra_swarm_cursor.md`.
+
+### `131-docker-swarm-stack-auto.mdc`
+
+Rule por glob para `Dockerfile`, `deploy/**`, `.dockerignore`, `.env.example`, `.editorconfig` e `.gitattributes`. Define stack com `mode: host`, `stop-first`, rede `app_network`, healthcheck `/health`, `CACHE_BUST` e script `force-image-rollout.sh`. Templates em `docs/cursor/templates/`.
+
+### `132-github-actions-swarm-deploy-auto.mdc`
+
+Rule por glob para `.github/workflows/deploy*.yml` e `*swarm*.yml`. Pipeline separado de `ci.yml`: runner `[self-hosted, linux, swarm]`, build GHCR com `CACHE_BUST`, `docker pull`, `stack deploy --with-registry-auth`, wait 600s com validação `3/3` na mesma tag SHA. Alembic opcional (sem `manage.py migrate`). Template: `docs/cursor/templates/deploy-swarm.yml`.
+
 ### `200-business-auth-token-auto.mdc`
 
 Regras de autenticação JWT: login, refresh, validate, arquitetura multi-sistema, validade de 1 hora, erros unificados, logs e rate limit.

@@ -1,0 +1,98 @@
+---
+description: Datas e horários FastAPI — UTC no banco, fuso local na resposta JSON.
+globs: "{core/datetime_utils.py,db/*datetime*,schemas/sp_datetime.py,models/**/*.py,schemas/**/*.py,services/**/*.py,alembic/versions/*.py}"
+alwaysApply: true
+---
+
+# Datetime e timezone (FastAPI + SQLAlchemy + Pydantic v2)
+
+Padrão portável para projetos brasileiros: **persistir em UTC**, **exibir na API no fuso configurado** (default `America/Sao_Paulo`).
+
+## Contrato
+
+| Camada | Regra |
+|--------|--------|
+| PostgreSQL | `TIMESTAMPTZ` (`DateTime(timezone=True)`) |
+| Models / services | `utc_now()` — nunca `datetime.utcnow()` |
+| Schemas `*Response` | `SPDateTime` / `OptionalSPDateTime` |
+| Schemas `*Create` / `*Update` | `datetime` normal (entrada ISO) |
+| Campos `date` | Sem conversão de fuso |
+
+## Arquivos base (copiar para novos projetos)
+
+```text
+core/datetime_utils.py      # utc_now + serialize para JSON
+db/datetime_columns.py      # helpers de Column (nome adaptável)
+schemas/sp_datetime.py      # SPDateTime para respostas
+```
+
+Setting em `core/config.py`:
+
+```python
+APP_TIMEZONE: str = "America/Sao_Paulo"  # ou CRM_APP_TIMEZONE, etc.
+```
+
+Documentar em `.env.example`. Templates em `docs/cursor/templates/datetime/`.
+
+## Model SQLAlchemy
+
+```python
+from sqlalchemy import Column, DateTime, func
+from datetime import datetime, timezone
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+created_at = Column(
+    DateTime(timezone=True),
+    default=utc_now,
+    server_default=func.now(),
+    nullable=False,
+)
+```
+
+Prefira helpers em `db/datetime_columns.py`: `dt_created()`, `dt_updated()`, `dt_nullable()`, `dt_required()`.
+
+## Schema de resposta (Pydantic v2)
+
+```python
+from typing import Annotated, Optional
+from datetime import datetime
+from pydantic import PlainSerializer
+from core.datetime_utils import serialize_datetime_to_app_tz
+
+SPDateTime = Annotated[datetime, PlainSerializer(serialize_datetime_to_app_tz, when_used="always")]
+OptionalSPDateTime = Annotated[Optional[datetime], PlainSerializer(serialize_datetime_to_app_tz, when_used="always")]
+```
+
+Serializer: se `tzinfo is None`, assumir UTC; converter para `APP_TIMEZONE`; retornar `.isoformat()`.
+
+## Proibido
+
+- `DateTime` sem `timezone=True` em colunas novas
+- `datetime.utcnow()` em código de produção
+- Converter `date` para fuso
+- Aplicar `SPDateTime` em schemas de entrada
+- Serializar manualmente em endpoints (usar tipo no schema)
+
+## Migration Alembic (tabelas existentes)
+
+Converter `timestamp without time zone` → `timestamptz` tratando dados legados como UTC:
+
+```sql
+ALTER TABLE tabela
+ALTER COLUMN coluna TYPE TIMESTAMP WITH TIME ZONE
+USING CASE WHEN coluna IS NULL THEN NULL ELSE coluna AT TIME ZONE 'UTC' END;
+```
+
+Aplicar em **todos** os ambientes (homolog → prod). Registrar no README.
+
+## Testes mínimos
+
+- `utc_now()` retorna aware UTC
+- naive UTC `15:00` serializa como `12:00-03:00` (SP)
+- `serialize(None)` → `None`
+
+## Referência neste repositório
+
+Implementação: `core/datetime_utils.py`, `db/crm_datetime.py`, `schemas/sp_datetime.py`, migration `012_timestamptz`.

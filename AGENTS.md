@@ -27,7 +27,8 @@ Regras complementares:
 
 - antes de criar uma classe nova, avaliar se ela é reutilizável e se deve virar abstração em `core/`;
 - quando uma regra de negócio importante for descoberta, criar ou atualizar uma Cursor Rule específica em `.cursor/rules/`;
-- para projetos existentes, usar a rule manual `120-business-rules-discovery-manual.mdc` antes de criar endpoints em domínios com regras complexas.
+- para projetos existentes, usar a rule manual `120-business-rules-discovery-manual.mdc` antes de criar endpoints em domínios com regras complexas;
+- para deploy em Docker Swarm, invocar `130-fastapi-swarm-deploy-manual.mdc` (perguntar `APP_PORT` e `STACK_NAME` antes de gerar arquivos); rules `131` e `132` aplicam-se a Dockerfile/stack e workflow `deploy-swarm.yml`.
 
 
 Quando mapear regras de negócio de projetos existentes, use `.cursor/business-rules/` apenas como documentação auxiliar. Rules ativas devem continuar em `.cursor/rules/*.mdc`.

@@ -1,0 +1,82 @@
+# Template deploy/stack.yml — substituir {HOSTNAME_PREFIX}, {ASGI_MODULE} e variáveis de ambiente.
+# APP_PORT e IMAGE vêm do .env do servidor (/opt/envs/{app}.env) no docker stack deploy.
+version: "3.8"
+
+services:
+  web:
+    image: ${IMAGE}
+
+    hostname: "{HOSTNAME_PREFIX}-{{.Node.Hostname}}"
+
+    command: >
+      gunicorn {ASGI_MODULE}
+      -k uvicorn.workers.UvicornWorker
+      --bind 0.0.0.0:${APP_PORT}
+      --workers 4
+      --timeout 60
+
+    ports:
+      - target: ${APP_PORT}
+        published: ${APP_PORT}
+        protocol: tcp
+        mode: host
+
+    networks:
+      - app_network
+
+    environment:
+      APP_PORT: ${APP_PORT}
+      APP_ENV: ${APP_ENV}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      OTEL_ENABLED: ${OTEL_ENABLED}
+      OTEL_APPEND_ENV: ${OTEL_APPEND_ENV}
+      OTEL_APPEND_IP_SUFFIX: ${OTEL_APPEND_IP_SUFFIX}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+      LOKI_ENABLED: ${LOKI_ENABLED}
+      LOKI_URL: ${LOKI_URL}
+      LOG_LEVEL: ${LOG_LEVEL}
+      ENABLE_TEST_ROUTES: ${ENABLE_TEST_ROUTES}
+
+    deploy:
+      mode: replicated
+      replicas: 3
+
+      placement:
+        max_replicas_per_node: 1
+
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first
+        failure_action: rollback
+
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first
+
+      resources:
+        reservations:
+          cpus: "0.50"
+          memory: 512M
+        limits:
+          cpus: "2.00"
+          memory: 2048M
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:$${APP_PORT}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  app_network:
+    external: true

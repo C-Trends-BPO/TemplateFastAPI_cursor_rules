@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      SECRET_KEY: ci-test-secret-key-do-not-use-in-production
+      PSQL_HOST: localhost
+      PSQL_USER: ci_user
+      PSQL_PASSWORD: ci_password
+      PSQL_DATABASE: ci_db
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Verify requirements files are UTF-8
+        run: |
+          python -c "
+          import pathlib
+          for name in ('requirements.txt', 'requirements-dev.txt'):
+              p = pathlib.Path(name)
+              if not p.exists():
+                  continue
+              raw = p.read_bytes()
+              if raw.startswith(b'\xff\xfe') or raw.startswith(b'\xfe\xff'):
+                  raise SystemExit(f'{name} must be UTF-8, not UTF-16 (pip fails on Linux CI)')
+              raw.decode('utf-8')
+          print('requirements encoding OK')
+          "
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y unixodbc-dev
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Prepare config for CI
+        run: cp core/example-config.py core/config.py
+
+      - name: Run unit tests
+        run: python -m pytest tests/ -m "not integration" -v --tb=short

@@ -16,6 +16,60 @@ AGENTS.md
 
 A pasta `.cursor/rules/` deve conter os arquivos `.mdc` completos.
 
+### Padrão `.env` + debug (FastAPI start manual)
+
+Para projetos que sobem com `uvicorn`/`python main.py`, inclua também:
+
+```text
+.cursor/rules/085-fastapi-env-debug-manual.mdc
+docs/cursor/templates/launch.json
+docs/cursor/templates/env-example-header.env
+docs/cursor/templates/ci.yml
+```
+
+Prompt recomendado após copiar a rule:
+
+```text
+Use a rule 085-fastapi-env-debug-manual.mdc (ou @085-fastapi-env-debug-manual).
+Adapte este projeto: migre secrets para .env, crie .env.example, core/example-config.py,
+.vscode/launch.json e documente execução + debug no README.
+ROOT_PATH prod: /api-{nome}; homolog: /hg-api-{nome}.
+PSQL_HOST prod: {host}; homolog: {host}.
+Não versionar .env nem core/config.py real.
+```
+
+Templates prontos para copiar/adaptar: [`templates/launch.json`](./templates/launch.json), [`templates/env-example-header.env`](./templates/env-example-header.env), [`templates/ci.yml`](./templates/ci.yml).
+
+### Deploy Swarm (FastAPI)
+
+Para projetos que vão para produção no Docker Swarm (`python-app-01/02/03`), inclua também:
+
+```text
+.cursor/rules/130-fastapi-swarm-deploy-manual.mdc
+.cursor/rules/131-docker-swarm-stack-auto.mdc
+.cursor/rules/132-github-actions-swarm-deploy-auto.mdc
+docs/contexto_infra_swarm_cursor.md
+docs/cursor/templates/Dockerfile.fastapi
+docs/cursor/templates/dockerignore
+docs/cursor/templates/deploy/stack.yml
+docs/cursor/templates/deploy-swarm.yml
+docs/cursor/templates/deploy/scripts/force-image-rollout.sh
+docs/cursor/templates/env-example-swarm.env
+```
+
+Prompt recomendado após copiar as rules:
+
+```text
+Use a rule 130-fastapi-swarm-deploy-manual.mdc.
+Adapte este projeto FastAPI para Docker Swarm conforme docs/contexto_infra_swarm_cursor.md.
+Antes de gerar arquivos, pergunte APP_PORT, STACK_NAME e módulo ASGI.
+Crie Dockerfile, deploy/stack.yml, deploy-swarm.yml, /health, .env.example e scripts.
+OTEL_APPEND_IP_SUFFIX=False no .env do servidor.
+Não versionar .env real.
+```
+
+Templates prontos: [`templates/Dockerfile.fastapi`](./templates/Dockerfile.fastapi), [`templates/deploy/stack.yml`](./templates/deploy/stack.yml), [`templates/deploy-swarm.yml`](./templates/deploy-swarm.yml), [`templates/env-example-swarm.env`](./templates/env-example-swarm.env).
+
 ## Passo 2: abrir o projeto pela raiz
 
 Abra no Cursor a pasta raiz do projeto, não uma subpasta.

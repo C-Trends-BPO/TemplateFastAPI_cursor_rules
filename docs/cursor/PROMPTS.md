@@ -19,6 +19,34 @@ Me diga quais pastas e módulos já seguem o padrão Endpoint -> Service -> CRUD
 Monte um plano incremental de migração.
 ```
 
+## Migrar `.env` e debug (FastAPI start manual)
+
+```text
+Use a rule 085-fastapi-env-debug-manual.mdc (ou @085-fastapi-env-debug-manual).
+Migre secrets do config para .env, crie .env.example e core/example-config.py,
+.vscode/launch.json (templates em docs/cursor/templates/) e documente execução + debug no README.
+
+Adaptar para este projeto:
+- ROOT_PATH prod: /api-{nome}
+- ROOT_PATH homolog: /hg-api-{nome}
+- PSQL_HOST prod: {host prod}
+- PSQL_HOST homolog: {host homolog}
+- APP module: main:app
+
+Não versionar .env nem core/config.py. Não usar --reload no launch.json.
+```
+
+## Deploy Docker Swarm (FastAPI)
+
+```text
+Use a rule 130-fastapi-swarm-deploy-manual.mdc (ou @130-fastapi-swarm-deploy-manual).
+Adapte este projeto FastAPI para Docker Swarm conforme docs/contexto_infra_swarm_cursor.md.
+Antes de gerar arquivos, pergunte APP_PORT, STACK_NAME e módulo ASGI.
+Crie Dockerfile, deploy/stack.yml, deploy-swarm.yml, GET /health, .env.example e scripts.
+OTEL_APPEND_IP_SUFFIX=False no .env do servidor (/opt/envs/{app}.env).
+Não versionar .env real. Manter ci.yml separado de deploy-swarm.yml.
+```
+
 ## Criar novo módulo
 
 ```text

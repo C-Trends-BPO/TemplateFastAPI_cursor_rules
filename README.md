@@ -35,12 +35,19 @@ Endpoint -> Service -> Core Client -> API externa
     ├── 100-task-workflow-agent.mdc
     ├── 110-python-style-auto.mdc
     ├── 115-reusable-core-abstractions-auto.mdc
-    └── 120-business-rules-discovery-manual.mdc
+    ├── 120-business-rules-discovery-manual.mdc
+    ├── 130-fastapi-swarm-deploy-manual.mdc
+    ├── 131-docker-swarm-stack-auto.mdc
+    └── 132-github-actions-swarm-deploy-auto.mdc
 
 docs/
+├── contexto_infra_swarm_cursor.md
 └── cursor/
     ├── README.md
-    └── PROMPTS.md
+    ├── PROMPTS.md
+    └── templates/
+        ├── deploy/
+        └── deploy-swarm.yml
 
 AGENTS.md
 .cursorrules
@@ -81,6 +88,12 @@ Exemplo:
 | 2026-05-30 | Adicionado | `services/` | Criada camada de services para regras de negócio. | Endpoints passam a chamar services antes do CRUD. |
 ```
 
+## Alterações recentes
+
+| Data | Tipo | Módulo/Pasta | Alteração | Impacto |
+| ---- | ---- | ------------ | --------- | ------- |
+| 2026-06-29 | Adicionado | `.cursor/rules/130-132`, `docs/cursor/templates/deploy*` | Rules e templates para deploy FastAPI em Docker Swarm (Dockerfile, stack, workflow GHCR, `/health`). | Projetos podem adaptar produção no Swarm com gate de `APP_PORT` e pipeline separado do CI. |
+
 ## Novas rules importantes
 
 ### Classes reutilizáveis no `core/`
@@ -90,6 +103,10 @@ A rule `115-reusable-core-abstractions-auto.mdc` orienta o Cursor a avaliar toda
 ### Descoberta de regras de negócio em projetos existentes
 
 A rule `120-business-rules-discovery-manual.mdc` deve ser chamada manualmente quando o time quiser mapear um projeto já em andamento. Ela induz o Cursor a analisar o diretório do projeto, identificar regras de negócio reais, fazer perguntas ao usuário e criar novas rules específicas para novos endpoints.
+
+### Deploy Docker Swarm (FastAPI)
+
+As rules `130-fastapi-swarm-deploy-manual.mdc`, `131-docker-swarm-stack-auto.mdc` e `132-github-actions-swarm-deploy-auto.mdc` orientam adaptação para produção no Docker Swarm. Invocar `@130` antes de gerar arquivos — é obrigatório perguntar `APP_PORT` e `STACK_NAME`. Contexto: `docs/contexto_infra_swarm_cursor.md`.
 
 Prompt recomendado:
 

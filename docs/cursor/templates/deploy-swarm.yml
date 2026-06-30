@@ -1,0 +1,149 @@
+# Template .github/workflows/deploy-swarm.yml — adaptar STACK_NAME, ENV_FILE e ASGI_MODULE.
+# Pipeline separado de ci.yml (rule 075). Não incluir migrate Django; Alembic é opcional.
+name: Build and Deploy to Docker Swarm
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  STACK_NAME: {STACK_NAME}
+  STACK_FILE: deploy/stack.yml
+  ENV_FILE: /opt/envs/{env-file-name}.env
+  SERVICE_NAME: {STACK_NAME}_web
+  # Descomente se o projeto usar Alembic:
+  # RUN_ALEMBIC: "true"
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, swarm]
+
+    permissions:
+      contents: read
+      packages: write
+
+    concurrency:
+      group: deploy-main
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Define image name
+        run: |
+          IMAGE_NAME=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE=ghcr.io/${IMAGE_NAME}:${GITHUB_SHA}" >> "$GITHUB_ENV"
+          echo "IMAGE_LATEST=ghcr.io/${IMAGE_NAME}:latest" >> "$GITHUB_ENV"
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: |
+            CACHE_BUST=${{ github.sha }}
+          tags: |
+            ${{ env.IMAGE }}
+            ${{ env.IMAGE_LATEST }}
+
+      - name: Pull image on runner
+        run: |
+          docker pull "${IMAGE}"
+          docker pull "${IMAGE_LATEST}"
+
+      - name: Validate Swarm cluster
+        run: |
+          docker node ls
+          docker network ls | grep -q app_network
+
+      - name: Validate environment file
+        run: |
+          test -f "${ENV_FILE}" || { echo "Arquivo ${ENV_FILE} não encontrado no runner."; exit 1; }
+          grep -q '^APP_PORT=' "${ENV_FILE}" || { echo "APP_PORT ausente em ${ENV_FILE}"; exit 1; }
+
+      - name: Run Alembic migrations (optional)
+        if: env.RUN_ALEMBIC == 'true'
+        run: |
+          docker run --rm \
+            --env-file "${ENV_FILE}" \
+            "${IMAGE}" \
+            alembic upgrade head
+
+      - name: Deploy stack
+        run: |
+          set -a
+          # shellcheck disable=SC1090
+          source "${ENV_FILE}"
+          set +a
+          export IMAGE="${IMAGE}"
+
+          docker pull "${IMAGE}"
+
+          docker stack deploy \
+            --with-registry-auth \
+            -c "${STACK_FILE}" \
+            "${STACK_NAME}"
+
+          docker service inspect "${SERVICE_NAME}" --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}'
+
+      - name: Wait for replicas
+        run: |
+          TIMEOUT=600
+          INTERVAL=15
+          STABLE_REQUIRED=2
+          SERVICE="${SERVICE_NAME}"
+          EXPECTED_IMAGE="${IMAGE}"
+          stable_count=0
+          elapsed=0
+
+          echo "Aguardando 3/3 réplicas estáveis com imagem ${EXPECTED_IMAGE}..."
+
+          while [ "${elapsed}" -lt "${TIMEOUT}" ]; do
+            replicas_line=$(docker service ls --format '{{.Name}} {{.Replicas}}' | awk -v svc="${SERVICE}" '$1 == svc { print $2; exit }')
+            if [ -z "${replicas_line}" ]; then
+              echo "Serviço ${SERVICE} ainda não listado..."
+              sleep "${INTERVAL}"
+              elapsed=$((elapsed + INTERVAL))
+              continue
+            fi
+
+            running=$(docker service ps "${SERVICE}" \
+              --filter "desired-state=running" \
+              --format '{{.CurrentState}}' | grep -c 'Running' || true)
+
+            image_count=$(docker service ps "${SERVICE}" \
+              --filter "desired-state=running" \
+              --format '{{.Image}}' | grep -c "${GITHUB_SHA}" || true)
+
+            echo "Réplicas: ${replicas_line} | Running: ${running} | Mesma tag SHA: ${image_count}/${running}"
+
+            if [ "${replicas_line}" = "3/3" ] && [ "${running}" -eq 3 ] && [ "${image_count}" -eq 3 ]; then
+              stable_count=$((stable_count + 1))
+              if [ "${stable_count}" -ge "${STABLE_REQUIRED}" ]; then
+                echo "Deploy estável: 3/3 na tag ${GITHUB_SHA}."
+                exit 0
+              fi
+            else
+              stable_count=0
+            fi
+
+            sleep "${INTERVAL}"
+            elapsed=$((elapsed + INTERVAL))
+          done
+
+          echo "Timeout após ${TIMEOUT}s. Verifique no manager:"
+          echo "  docker service ls | grep ${STACK_NAME}"
+          echo "  docker service ps ${SERVICE} --filter desired-state=running --format '{{.Node}} {{.Image}}'"
+          exit 1
