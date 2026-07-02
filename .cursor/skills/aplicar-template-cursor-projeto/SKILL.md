@@ -45,6 +45,23 @@ Não versionar .env nem core/config.py real.
 
 Templates prontos para copiar/adaptar: `docs/cursor/templates/launch.json`, `docs/cursor/templates/env-example-header.env`, `docs/cursor/templates/ci.yml`.
 
+### Sessão async SQLAlchemy
+
+Para projetos com `AsyncSession`, inclua também:
+
+```text
+.cursor/rules/015-db-session-auto.mdc
+docs/cursor/templates/db/
+```
+
+Prompt recomendado:
+
+```text
+Use a rule 015-db-session-auto.mdc.
+Configure db/session.py e api/deps.py (DbDep) conforme docs/cursor/templates/db/.
+Não faça auto-commit em get_db se o CRUD já commita.
+```
+
 ## Passo 2: abrir o projeto pela raiz
 
 Abra no Cursor a pasta raiz do projeto, não uma subpasta.

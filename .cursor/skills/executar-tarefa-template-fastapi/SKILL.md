@@ -9,6 +9,7 @@ Antes de alterar código, identifique camadas impactadas: `api/`, `services/`, `
 
 ## Criar novo módulo
 
+0. Garantir `db/session.py` + `api/deps.py` (rule `015-db-session-auto.mdc` / templates `docs/cursor/templates/db/`) se ainda não existirem
 1. Model (se tabela nova)
 2. Schemas (Base, Create, Update, Response)
 3. CRUD
@@ -37,6 +38,7 @@ Antes de alterar código, identifique camadas impactadas: `api/`, `services/`, `
 ## Regras transversais
 
 - Endpoint leve → service com negócio → CRUD só banco
+- Sessão async: `DbDep` em endpoints; `get_db` sem auto-commit (rules 015 + 045)
 - Não versionar secrets
 - Testes: AsyncMock em unitários; sem API/banco real
 - Regras de domínio: consultar `.cursor/rules/2xx-business-*`

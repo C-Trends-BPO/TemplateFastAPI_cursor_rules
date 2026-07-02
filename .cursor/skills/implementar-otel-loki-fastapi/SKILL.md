@@ -14,7 +14,8 @@ Rule de princípios (sempre ativa): `.cursor/rules/333-observability-otel-loki-a
 ## Checklist de implementação
 
 ```text
-- [ ] Campos OTEL/LOKI em core/config.py (settings, não .env)
+- [ ] Campos OTEL/LOKI em core/config.py (settings centralizado; .env do servidor alimenta Pydantic em produção)
+- [ ] OTEL_DEFER_INIT=True no Swarm + gunicorn_conf.py com post_fork
 - [ ] core/host_info.py — IP e sufixo
 - [ ] Properties service_name, loki_app_name no Settings
 - [ ] core/logging_config.py — LOG_FORMAT, Loki, helpers HTTP
@@ -30,18 +31,28 @@ Rule de princípios (sempre ativa): `.cursor/rules/333-observability-otel-loki-a
 ## Ordem no main.py
 
 ```python
-setup_base_telemetry()
-setup_logging_instrumentation()
-setup_logging()
-log_telemetry_status()
+def init_observability():
+    setup_base_telemetry()
+    setup_logging_instrumentation()
+    setup_logging()
+    log_telemetry_status()
+
+if not settings.OTEL_DEFER_INIT:
+    init_observability()
 # app + middleware + instrument_fastapi
 ```
 
+Swarm: `OTEL_DEFER_INIT=True` — `init_observability()` só no `post_fork` de `gunicorn_conf.py`.
+
 ## Endpoints
 
-- Traces OTLP: porta **4318** (`OTEL_EXPORTER_OTLP_ENDPOINT` sem `/v1/traces` no config)
+- Traces OTLP: porta **4318** (`OTEL_EXPORTER_OTLP_ENDPOINT` sem `/v1/traces` no config; concatenar em `telemetry.py`)
 - Loki: `LOKI_URL` → `/loki/api/v1/push`
 - **Nunca** enviar traces para porta 3200
+
+## Gunicorn (Swarm)
+
+Com múltiplos workers, usar `OTEL_DEFER_INIT=True` + `gunicorn_conf.py` (`post_fork` → `init_observability()`). Ver `docs/observability/reference.md` e template `docs/cursor/templates/gunicorn_conf.py`.
 
 ## Níveis de log
 
@@ -71,6 +82,8 @@ Evita `KeyError: 'otelTraceID'` com dictConfig próprio.
 
 - Duplicar app, dictConfig, instrumentadores
 - `os.getenv` fora do config
+- `/v1/traces` no `settings` **e** concatenação no `telemetry.py`
+- Init OTEL no import do `main.py` com Gunicorn multi-worker sem `post_fork`
 - `logger.error` para todo 4xx
 - Stack trace ao cliente
 - `/teste-erro-loki` em produção

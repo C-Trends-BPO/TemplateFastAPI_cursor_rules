@@ -1,7 +1,7 @@
 ---
 description: Datas e horários FastAPI — UTC no banco, fuso local na resposta JSON.
 globs: "{core/datetime_utils.py,db/*datetime*,schemas/sp_datetime.py,models/**/*.py,schemas/**/*.py,services/**/*.py,alembic/versions/*.py}"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Datetime e timezone (FastAPI + SQLAlchemy + Pydantic v2)
@@ -56,13 +56,18 @@ Prefira helpers em `db/datetime_columns.py`: `dt_created()`, `dt_updated()`, `dt
 ## Schema de resposta (Pydantic v2)
 
 ```python
-from typing import Annotated, Optional
 from datetime import datetime
+from typing import Annotated
+
 from pydantic import PlainSerializer
+
 from core.datetime_utils import serialize_datetime_to_app_tz
 
 SPDateTime = Annotated[datetime, PlainSerializer(serialize_datetime_to_app_tz, when_used="always")]
-OptionalSPDateTime = Annotated[Optional[datetime], PlainSerializer(serialize_datetime_to_app_tz, when_used="always")]
+OptionalSPDateTime = Annotated[
+    datetime | None,
+    PlainSerializer(serialize_datetime_to_app_tz, when_used="always"),
+]
 ```
 
 Serializer: se `tzinfo is None`, assumir UTC; converter para `APP_TIMEZONE`; retornar `.isoformat()`.
@@ -93,6 +98,14 @@ Aplicar em **todos** os ambientes (homolog → prod). Registrar no README.
 - naive UTC `15:00` serializa como `12:00-03:00` (SP)
 - `serialize(None)` → `None`
 
-## Referência neste repositório
+## Referência neste repositório (templates)
 
-Implementação: `core/datetime_utils.py`, `db/crm_datetime.py`, `schemas/sp_datetime.py`, migration `012_timestamptz`.
+Copiar de `docs/cursor/templates/datetime/` para o projeto real:
+
+| Template | Destino |
+|----------|---------|
+| `datetime_utils.py` | `core/datetime_utils.py` |
+| `datetime_columns.py` | `db/datetime_columns.py` |
+| `sp_datetime.py` | `schemas/sp_datetime.py` |
+
+Guia: `docs/cursor/templates/datetime/README.md`.

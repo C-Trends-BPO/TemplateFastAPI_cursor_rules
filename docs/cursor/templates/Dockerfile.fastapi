@@ -26,4 +26,4 @@ COPY . .
 ARG APP_PORT={APP_PORT}
 EXPOSE ${APP_PORT}
 
-CMD ["sh", "-c", "gunicorn {ASGI_MODULE} -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${APP_PORT} --workers 4 --timeout 60"]
+CMD ["sh", "-c", "gunicorn {ASGI_MODULE} -c gunicorn_conf.py -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${APP_PORT} --workers 4 --timeout 60"]

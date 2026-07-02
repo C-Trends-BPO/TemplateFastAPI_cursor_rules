@@ -36,6 +36,17 @@ Adaptar para este projeto:
 Não versionar .env nem core/config.py. Não usar --reload no launch.json.
 ```
 
+## Configurar sessão async SQLAlchemy
+
+```text
+Use a rule 015-db-session-auto.mdc (ou @015-db-session-auto).
+Configure db/session.py com create_async_engine, async_sessionmaker(expire_on_commit=False) e get_db async.
+Crie api/deps.py com DbDep = Annotated[AsyncSession, Depends(get_db)].
+Use os templates em docs/cursor/templates/db/ como base.
+Não faça auto-commit em get_db se o CRUD já commita (rule 045).
+Endpoints devem usar DbDep e chamar service — não acessar CRUD diretamente.
+```
+
 ## Deploy Docker Swarm (FastAPI)
 
 ```text
@@ -86,8 +97,8 @@ Entregue o arquivo completo ajustado.
 
 ```text
 Crie/altere o endpoint de [NOME_DO_MODULO] seguindo o padrão do projeto.
-O endpoint deve ser leve, usar response_model, Depends e chamar o service.
-Não coloque regra de negócio no endpoint.
+O endpoint deve ser leve, usar response_model, DbDep (rule 015) e chamar o service.
+Use status_code explícito em POST (ex.: 201). Não coloque regra de negócio no endpoint.
 Entregue o arquivo completo ajustado.
 ```
 

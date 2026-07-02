@@ -19,10 +19,10 @@ Sempre responder em português do Brasil.
 - Logs correlacionados com `trace_id`, `span_id` e `service.name`.
 - Níveis de log: `WARNING` para 4xx comuns; `ERROR` para 5xx e 401/403.
 - Handler global de exceções; não expor stack trace ao cliente.
-- Configuração em `settings` (`core/config.py`), **não** em `.env` nem `os.getenv`.
+- Configuração centralizada em `settings` (`core/config.py`) via Pydantic — **não** usar `os.getenv` espalhado no código. Em produção (Swarm), o `.env` do servidor alimenta o `settings`; defaults podem ficar no código.
 - Código isolado em `core/telemetry.py`, `core/logging_config.py`, `core/host_info.py`.
 - `OTEL_SERVICE_NAME` e `LOKI_APP_NAME` são nome **base**; ambiente (`type_name`) e IP via properties.
-- No Docker Swarm: `OTEL_APPEND_IP_SUFFIX=False`.
+- No Docker Swarm: `OTEL_APPEND_IP_SUFFIX=False` e `OTEL_DEFER_INIT=True` (telemetria no `post_fork` do Gunicorn).
 
 ## Implementação
 
@@ -38,3 +38,4 @@ Referência completa com código: `docs/observability/reference.md`.
 - `logger.error` fixo para todo 4xx.
 - Hardcodar nome/host da aplicação fora do config.
 - Rotas de teste (`/teste-erro-loki`) sem `ENABLE_TEST_ROUTES=False` em produção.
+- Init OTEL no import com Gunicorn multi-worker sem `gunicorn_conf.py` / `post_fork`.

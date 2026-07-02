@@ -1,7 +1,7 @@
 """Template portável — copie para schemas/sp_datetime.py."""
 
 from datetime import datetime
-from typing import Annotated, Optional
+from typing import Annotated
 
 from pydantic import PlainSerializer
 
@@ -13,6 +13,6 @@ SPDateTime = Annotated[
 ]
 
 OptionalSPDateTime = Annotated[
-    Optional[datetime],
+    datetime | None,
     PlainSerializer(serialize_datetime_to_app_tz, when_used="always"),
 ]

@@ -16,7 +16,7 @@ Complementa `130-fastapi-swarm-deploy-manual.mdc`, `075-github-actions-ci-auto.m
 - `CACHE_BUST` no Dockerfile antes de `COPY . .`.
 - `GET /health` → `{"status": "ok"}`; healthcheck com `curl`.
 - `requirements.txt` UTF-8; incluir `gunicorn` e `uvicorn[standard]`.
-- No Swarm: `OTEL_APPEND_IP_SUFFIX=False` no `.env` do servidor.
+- No Swarm: `OTEL_APPEND_IP_SUFFIX=False` no `.env` do servidor; `OTEL_DEFER_INIT=True` com `gunicorn_conf.py`.
 
 Templates: `docs/cursor/templates/Dockerfile.fastapi`, `deploy/stack.yml`, `dockerignore`, `env-example-swarm.env`.
 

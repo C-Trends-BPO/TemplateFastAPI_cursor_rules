@@ -609,7 +609,7 @@ COPY . .
 ARG APP_PORT=8010
 EXPOSE ${APP_PORT}
 
-CMD ["sh", "-c", "gunicorn main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${APP_PORT} --workers 4 --timeout 60"]
+CMD ["sh", "-c", "gunicorn main:app -c gunicorn_conf.py -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${APP_PORT} --workers 4 --timeout 60"]
 ```
 
 Atenção:
@@ -617,6 +617,7 @@ Atenção:
 - Trocar `main:app` pelo módulo correto da aplicação.
 - **Perguntar `APP_PORT`** antes de criar o Dockerfile (seção 5.2).
 - Garantir que `gunicorn` e `uvicorn` estejam no `requirements.txt`.
+- Copiar `docs/cursor/templates/gunicorn_conf.py` para a raiz (OTEL no `post_fork` com `OTEL_DEFER_INIT=True`).
 - Garantir que `curl` exista no container para o healthcheck.
 
 ---
@@ -1299,14 +1300,19 @@ No `.env` do servidor (`/opt/envs/minha-app.env`), incluir:
 
 ```env
 OTEL_ENABLED=True
+OTEL_SERVICE_NAME=NomeAplicacaoFastAPI
 OTEL_APPEND_ENV=True
 OTEL_APPEND_IP_SUFFIX=False
+OTEL_DEFER_INIT=True
+OTEL_ENVIRONMENT=production
 OTEL_EXPORTER_OTLP_ENDPOINT=http://192.168.0.213:4318
+LOKI_ENABLED=True
+LOKI_APP_NAME=NomeAplicacaoFastAPI
 LOKI_URL=http://192.168.0.213:3100/loki/api/v1/push
 LOG_LEVEL=INFO
 ```
 
-Repassar `OTEL_APPEND_IP_SUFFIX` no `environment` de `deploy/stack.yml`.
+Repassar variáveis OTEL/LOKI no `environment` de `deploy/stack.yml`. Com Gunicorn multi-worker, usar `gunicorn_conf.py` (`post_fork` → `init_observability`) e `-c gunicorn_conf.py` no comando — ver `docs/observability/reference.md`.
 
 ### Nome da aplicação em Loki/Tempo
 

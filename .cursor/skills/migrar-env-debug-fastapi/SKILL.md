@@ -26,7 +26,8 @@ Templates: `docs/cursor/templates/launch.json`, `env-example-header.env`.
 
 ```python
 from pathlib import Path
-from pydantic_settings import BaseSettings
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ENV_FILE = PROJECT_ROOT / ".env"
@@ -38,10 +39,11 @@ class Settings(BaseSettings):
     ROOT_PATH: str = "/api-{nome-projeto}"
     PROJECT_NAME: str = "{Nome Projeto}"
 
-    class Config:
-        case_sensitive = True
-        env_file = str(ENV_FILE)
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(
+        case_sensitive=True,
+        env_file=str(ENV_FILE),
+        env_file_encoding="utf-8",
+    )
 
 settings = Settings()
 ```
@@ -90,7 +92,7 @@ python -c "from core.config import settings; print(settings.DEBUG, settings.ROOT
 ## Checklist de migração
 
 1. Secrets `config.py` → `.env`
-2. `PROJECT_ROOT` + `env_file` no BaseSettings
+2. `PROJECT_ROOT` + `SettingsConfigDict(env_file=...)` no BaseSettings
 3. `.env.example` + `.env` no gitignore
 4. `launch.json` adaptado
 5. CI copia `example-config.py`

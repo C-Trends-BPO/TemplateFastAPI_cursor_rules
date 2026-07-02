@@ -22,6 +22,8 @@ Mapear duplicação, rules gigantes, referências órfãs e oportunidades de enx
 - [ ] Skills em .cursor/skills/ (não em skills-cursor)
 - [ ] Rules 200–280 intactas (negócio não vira Skill)
 - [ ] docs/observability, docs/cursor/templates atualizados
+- [ ] Rule 015 (sessão async) alinhada com 020, 045 e templates db/
+- [ ] Endpoints usam DbDep; get_db sem auto-commit quando CRUD commita
 ```
 
 ## Classificação por tipo

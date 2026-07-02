@@ -50,6 +50,10 @@ Define o contexto global do projeto: stack, camadas, fluxo arquitetural e regras
 
 Define regras de arquitetura, dependência entre camadas e como criar novos módulos.
 
+### `015-db-session-auto.mdc`
+
+Define sessão SQLAlchemy async: `create_async_engine`, `async_sessionmaker`, `get_db` e alias `DbDep`. Templates: `docs/cursor/templates/db/`.
+
 ### `020-fastapi-endpoints-auto.mdc`
 
 Define o padrão para endpoints FastAPI leves, sem regra de negócio pesada.
@@ -62,9 +66,17 @@ Define como criar services com validações, normalizações, orquestração e r
 
 Define que CRUD deve cuidar apenas de acesso ao banco, filtros, paginação e persistência.
 
+### `045-crud-transaction-commit-auto.mdc`
+
+Define `commit: bool` no CRUD base, transação única no service/endpoint e separação sessão vs commit (complementa rule 015).
+
 ### `050-schemas-models-auto.mdc`
 
 Define separação entre schemas Pydantic e models SQLAlchemy, além do padrão Base/Create/Update/Response.
+
+### `055-datetime-timezone-auto.mdc`
+
+Padrão datetime/timezone: UTC no banco (`DateTime(timezone=True)`), `utc_now()`, `SPDateTime`/`OptionalSPDateTime` em schemas `*Response`. Templates: `docs/cursor/templates/datetime/`.
 
 ### `060-core-integrations-auto.mdc`
 

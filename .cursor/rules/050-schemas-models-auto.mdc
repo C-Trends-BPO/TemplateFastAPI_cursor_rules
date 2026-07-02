@@ -35,6 +35,8 @@ Schemas ficam em `schemas/` e representam entrada/saída da API.
 Padrão recomendado:
 
 ```python
+from pydantic import BaseModel, ConfigDict
+
 class ItemBase(BaseModel):
     name: str | None = None
 
@@ -46,9 +48,7 @@ class ItemUpdate(ItemBase):
 
 class ItemResponse(ItemBase):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 ```
 
 ## Nomes recomendados
@@ -64,6 +64,6 @@ class ItemResponse(ItemBase):
 
 - Campos obrigatórios no `Create`.
 - Campos opcionais no `Update`.
-- Resposta deve ter `from_attributes = True` em Pydantic v2.
+- Resposta deve ter `model_config = ConfigDict(from_attributes=True)` em Pydantic v2.
 - Não expor campos sensíveis no response.
 - Não misturar schema de payload externo com model interno quando os formatos forem diferentes.

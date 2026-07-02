@@ -41,12 +41,14 @@ Endpoint -> Service -> Core Client -> API externa
 
 | Arquivo | Função |
 |---------|--------|
+| `015-db-session-auto.mdc` | Sessão async — engine, `get_db`, `DbDep` |
 | `020-fastapi-endpoints-auto.mdc` | Endpoints leves |
 | `030-services-auto.mdc` | Regras de negócio em services |
 | `040-crud-auto.mdc` | CRUD só acesso ao banco |
 | `045-crud-transaction-commit-auto.mdc` | `commit: bool`, transação única |
 | `046-alembic-version-table-auto.mdc` | Tabela de versão Alembic |
 | `050-schemas-models-auto.mdc` | Schemas vs models |
+| `055-datetime-timezone-auto.mdc` | UTC no banco, fuso local na resposta (`SPDateTime`) |
 | `060-core-integrations-auto.mdc` | Clients externos, OAuth, mTLS |
 | `070-tests-auto.mdc` | Pytest por camada |
 | `075-github-actions-ci-auto.mdc` | Stub CI → Skill `configurar-ci-github-actions` |

@@ -30,6 +30,25 @@ http://192.168.0.213:3100/loki/api/v1/push
 
 Nunca usar a porta `3200` na aplicação para enviar traces.
 
+### Endpoint OTLP — base URL vs `/v1/traces`
+
+No `settings`, guardar apenas a **base URL** (sem `/v1/traces`):
+
+```python
+OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://192.168.0.213:4318"
+```
+
+No `core/telemetry.py`, ao passar o endpoint explicitamente ao `OTLPSpanExporter`, concatenar o path:
+
+```python
+endpoint = settings.OTEL_EXPORTER_OTLP_ENDPOINT.rstrip("/")
+exporter = OTLPSpanExporter(endpoint=f"{endpoint}/v1/traces")
+```
+
+O SDK só auto-anexa `/v1/traces` quando lê de variáveis de ambiente (`OTEL_EXPORTER_OTLP_ENDPOINT`) **sem** passar `endpoint` ao construtor. Com construtor explícito, a URL é usada como está.
+
+**Anti-padrão:** base URL com `/v1/traces` no `settings` **e** concatenação no código → `.../v1/traces/v1/traces`.
+
 Definir o endpoint como campo do `config` (`settings`):
 
 Correto:
@@ -47,7 +66,9 @@ OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://192.168.0.213:3200"
 
 ## Configurações obrigatórias no config
 
-As configurações ficam em `core/config.py`, NÃO em `.env`. Ler sempre de `settings`.
+Valores em `core/config.py` via classe `Settings` (Pydantic). Ler sempre de `settings` — não espalhar `os.getenv` no código.
+
+Em **desenvolvimento local**, defaults podem ficar no `Settings`. Em **produção (Swarm)**, o `.env` do servidor (`/opt/envs/{app}.env`) alimenta o `settings` via variáveis de ambiente; o arquivo real não vai para o Git.
 
 ```python
 class Settings(BaseSettings):
@@ -66,6 +87,7 @@ class Settings(BaseSettings):
 
     LOG_LEVEL: str = "INFO"
     ENABLE_TEST_ROUTES: bool = False
+    OTEL_DEFER_INIT: bool = False  # True no Swarm — init no post_fork do Gunicorn
 ```
 
 `OTEL_SERVICE_NAME` e `LOKI_APP_NAME` são nome BASE. Properties `service_name`/`loki_app_name` anexam ambiente (`type_name`) e octeto IP.
@@ -157,14 +179,14 @@ opentelemetry-api
 opentelemetry-sdk
 opentelemetry-exporter-otlp-proto-http
 opentelemetry-instrumentation-fastapi
-opentelemetry-instrumentation-requests
+opentelemetry-instrumentation-httpx
 opentelemetry-instrumentation-sqlalchemy
 opentelemetry-instrumentation-psycopg2
 opentelemetry-instrumentation-logging
 python-logging-loki
 ```
 
-Projetos com `httpx`/`asyncpg`: `HTTPXClientInstrumentor` e `sync_engine` do SQLAlchemy.
+Projetos que ainda usam `requests` (não `httpx`): adicionar `opentelemetry-instrumentation-requests`. Com `asyncpg`: instrumentar `sync_engine` do SQLAlchemy.
 
 ## Estrutura
 
@@ -405,6 +427,43 @@ def instrument_sqlalchemy(engine) -> None:
 
 Ordem crítica: `setup_base_telemetry()` → `setup_logging_instrumentation()` → `setup_logging()` → `log_telemetry_status()`.
 
+## Gunicorn e fork safety
+
+O `BatchSpanProcessor` **não é fork-safe**. Com Gunicorn + múltiplos workers (`UvicornWorker`), inicializar telemetria no import do `main.py` no processo master pode causar deadlocks ou traces perdidos após o `fork`.
+
+**Padrão recomendado (Swarm/produção):**
+
+1. `OTEL_DEFER_INIT=True` no `.env` do servidor — adia o init no import.
+2. `gunicorn_conf.py` na raiz com hook `post_fork` que chama `init_observability()`.
+3. Comando Gunicorn com `-c gunicorn_conf.py`.
+
+Template: `docs/cursor/templates/gunicorn_conf.py`.
+
+```python
+# gunicorn_conf.py
+def post_fork(server, worker):
+    from main import init_observability
+
+    init_observability()
+```
+
+```python
+# main.py — função reutilizável
+def init_observability() -> None:
+    setup_base_telemetry()
+    setup_logging_instrumentation()
+    setup_logging()
+    log_telemetry_status()
+
+
+if not settings.OTEL_DEFER_INIT:
+    init_observability()
+```
+
+**Desenvolvimento local (uvicorn direto):** manter `OTEL_DEFER_INIT=False` (default) — init no import funciona com processo único.
+
+**Alternativas** (menos comuns neste template): `opentelemetry-instrument` como wrapper do comando; `SimpleSpanProcessor` (trade-off de performance).
+
 ## `main.py`
 
 ```python
@@ -424,12 +483,18 @@ from core.telemetry import (
     setup_logging_instrumentation,
 )
 
-setup_base_telemetry()
-setup_logging_instrumentation()
-setup_logging()
+
+def init_observability() -> None:
+    setup_base_telemetry()
+    setup_logging_instrumentation()
+    setup_logging()
+    log_telemetry_status()
+
+
+if not settings.OTEL_DEFER_INIT:
+    init_observability()
 
 logger = logging.getLogger(settings.service_name)
-log_telemetry_status()
 
 app = FastAPI(title=settings.OTEL_SERVICE_NAME)
 app.add_middleware(RequestLoggingMiddleware)

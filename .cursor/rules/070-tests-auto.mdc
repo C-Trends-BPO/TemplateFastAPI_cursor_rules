@@ -34,14 +34,40 @@ tests/
 - Testar payload de resposta.
 - Mockar service quando o foco for apenas a rota.
 - Usar `httpx.AsyncClient` quando o app for assíncrono.
+- Quando precisar de sessão fake (sem mockar service): `app.dependency_overrides[get_db]`.
 
-## Padrão recomendado
+## Padrão recomendado — endpoint com service mockado
 
 ```python
 @pytest.mark.asyncio
-async def test_create_item_deve_retornar_200(async_client):
+async def test_create_item_deve_retornar_201(async_client):
     response = await async_client.post("/api/v1/items/", json={"name": "Teste"})
-    assert response.status_code == 200
+    assert response.status_code == 201
+```
+
+## Override de `get_db` (sessão fake)
+
+```python
+from collections.abc import AsyncGenerator
+from unittest.mock import AsyncMock
+
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from db.session import get_db
+from main import app
+
+
+async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
+    db = AsyncMock(spec=AsyncSession)
+    yield db
+
+
+@pytest.fixture
+def client_with_db_override():
+    app.dependency_overrides[get_db] = override_get_db
+    yield
+    app.dependency_overrides.clear()
 ```
 
 ## Regras

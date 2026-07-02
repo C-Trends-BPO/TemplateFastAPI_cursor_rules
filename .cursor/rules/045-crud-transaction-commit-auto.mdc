@@ -6,7 +6,17 @@ alwaysApply: false
 
 # Transação e commit no CRUD
 
-Complementa [`040-crud-auto.mdc`](040-crud-auto.mdc). Use em projetos FastAPI + SQLAlchemy (`AsyncSession` ou `Session`).
+Complementa [`040-crud-auto.mdc`](040-crud-auto.mdc) e [`015-db-session-auto.mdc`](015-db-session-auto.mdc). Use em projetos FastAPI + SQLAlchemy (`AsyncSession` ou `Session`).
+
+## Sessão vs transação
+
+| Responsabilidade | Camada |
+|------------------|--------|
+| Abrir/fechar sessão por request | `get_db` em `db/session.py` (rule 015) |
+| `commit` / `rollback` / `flush` | CRUD ou service |
+
+- `get_db` **não** deve fazer auto-commit no happy path quando o CRUD já usa `commit=True` (default).
+- Evitar misturar abordagem A (commit no CRUD/service) com abordagem B (auto-commit na dependency).
 
 ## Princípio
 

@@ -12,7 +12,7 @@ Endpoints devem ser simples e focados em HTTP.
 
 - Declarar rota com `APIRouter`.
 - Declarar `response_model` sempre que possível.
-- Receber dependências com `Depends`.
+- Receber dependências com `Annotated` + `Depends` (alias `DbDep` para sessão — rule [`015-db-session-auto.mdc`](015-db-session-auto.mdc)).
 - Receber payload com schema Pydantic.
 - Chamar uma função/método da camada `services/`.
 - Retornar o resultado do service.
@@ -33,12 +33,14 @@ Endpoints devem ser simples e focados em HTTP.
 ## Padrão recomendado
 
 ```python
-@router.post("/", response_model=ItemResponse)
+from api.deps import DbDep
+
+@router.post("/", response_model=ItemResponse, status_code=201)
 async def create_item(
     *,
-    db: AsyncSession = Depends(deps.get_db),
+    db: DbDep,
     payload: ItemCreate,
-) -> Any:
+) -> Item:
     """
     Cria um novo item.
     """
