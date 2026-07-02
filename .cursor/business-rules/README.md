@@ -38,11 +38,11 @@ Quando uma regra for confirmada e precisar orientar futuras alterações de cód
 .cursor/rules/2xx-business-<dominio>-auto.mdc
 ```
 
-Exemplos:
+Exemplos fictícios (criar no projeto real quando confirmado):
 
 ```text
-.cursor/rules/200-business-service-orders-auto.mdc
-.cursor/rules/210-business-users-permissions-auto.mdc
+.cursor/rules/200-business-orders-auto.mdc
+.cursor/rules/210-business-permissions-auto.mdc
 .cursor/rules/220-business-invoices-auto.mdc
 ```
 
@@ -58,12 +58,12 @@ Pode ficar apenas nesta pasta quando for:
 
 ## Fluxo recomendado
 
-1. Use a rule manual `.cursor/rules/120-business-rules-discovery-manual.mdc`.
+1. Use a Skill `descobrir-regras-negocio` ou a rule `120-business-rules-discovery-manual.mdc`.
 2. Peça para o Cursor analisar o projeto atual.
 3. Registre hipóteses e dúvidas nesta pasta, se necessário.
 4. Confirme as regras com o usuário/time.
 5. Transforme regras confirmadas em `.mdc` dentro de `.cursor/rules/`.
-6. Atualize `.cursor/rules/README.md` com a nova rule criada.
+6. Atualize `docs/cursor/rules-index.md` com a nova rule criada.
 7. Atualize o README do projeto e a seção `Alterações recentes`, quando aplicável.
 
 ## Regra principal

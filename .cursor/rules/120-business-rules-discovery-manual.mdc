@@ -6,219 +6,32 @@ alwaysApply: false
 
 # Rule manual: descoberta de regras de negócio do projeto
 
-Esta rule deve ser chamada manualmente quando o projeto já está em andamento e é necessário entender suas regras de negócio antes de criar ou alterar endpoints.
+**Use a Skill `descobrir-regras-negocio`** em `.cursor/skills/descobrir-regras-negocio/SKILL.md`.
+
+Invoque com `@120-business-rules-discovery-manual` ao mapear projeto legado ou antes de criar endpoints em domínios com regras complexas.
 
 ## Objetivo
 
-Analisar o diretório atual do projeto, identificar padrões reais de negócio e ajudar o usuário a transformar esses padrões em novas rules específicas para evitar que futuros endpoints sejam criados descumprindo regras importantes.
+Analisar o projeto, identificar padrões de negócio e transformá-los em `.cursor/rules/2xx-business-<dominio>-auto.mdc`.
 
-Esta rule não substitui as rules gerais de arquitetura. Ela complementa o projeto com rules de negócio específicas.
+Documentação auxiliar: `.cursor/business-rules/` (não substitui rules ativas).
 
-## Quando usar
-
-Use esta rule quando:
-
-- o projeto já possui módulos implementados;
-- existem regras de negócio espalhadas em endpoints/services/cruds;
-- novos endpoints precisam respeitar regras existentes;
-- o usuário quer padronizar o desenvolvimento do projeto;
-- uma regra nova foi descoberta durante uma implementação;
-- uma regra nova foi definida em conjunto com o usuário.
-
-## Como analisar o projeto
-
-Ao ser chamado com esta rule, faça uma análise ampla do diretório do projeto atual.
-
-Priorize os arquivos em:
-
-```text
-api/
-api/api_v1/endpoints/
-services/
-crud/
-models/
-schemas/
-core/
-db/
-tests/
-README.md
-**/README.md
-.env.example
-```
-
-Procure por:
-
-- fluxos principais do negócio;
-- validações recorrentes;
-- transições de status;
-- permissões por grupo/usuário/perfil;
-- regras de autenticação/autorização;
-- normalização de campos;
-- geração de códigos/números;
-- integrações externas obrigatórias;
-- eventos/históricos/auditoria;
-- regras de cancelamento/finalização/reabertura;
-- regras para criação/edição/exclusão;
-- campos que nunca podem ser alterados;
-- campos obrigatórios por contexto;
-- regras específicas por cliente/projeto/tipo/status;
-- padrões de erro e mensagens;
-- efeitos colaterais obrigatórios, como criar histórico ou enviar evento externo.
-
-## Não inventar regras
-
-Não crie rule de negócio baseada em suposição.
-
-Classifique cada regra encontrada como:
-
-```text
-Confirmada pelo código
-Confirmada pelo README/documentação
-Inferida com baixa confiança
-Pergunta para o usuário
-```
-
-Rules novas só devem ser criadas para regras confirmadas pelo código, pela documentação ou pelo usuário.
-
-## Perguntas obrigatórias ao usuário
-
-Depois da análise inicial, faça perguntas objetivas para fechar lacunas.
-
-Exemplos:
-
-```text
-1. Quando uma OS muda para FINALIZADA, algum histórico deve ser criado obrigatoriamente?
-2. Existe algum status que bloqueia edição ou exclusão?
-3. Quais grupos podem criar, editar ou cancelar registros neste módulo?
-4. Algum campo deve ser normalizado sempre, como upper(), strip() ou remoção de máscara?
-5. Este endpoint deve disparar integração externa ou evento interno?
-6. Existe algum cliente/projeto com regra especial?
-7. Existe algum prazo, SLA ou data limite que precisa ser validado?
-8. Ao criar esse recurso, outros registros precisam ser criados automaticamente?
-9. Quais erros precisam retornar 400, 403, 404 ou 409?
-10. Há alguma regra que já deu problema antes e deve virar rule permanente?
-```
-
-Faça apenas perguntas úteis e relacionadas ao que foi encontrado no projeto.
-
-## Organização entre `.cursor/rules/` e `.cursor/business-rules/`
-
-As rules ativas que o Cursor deve aplicar devem continuar em `.cursor/rules/` como arquivos `.mdc`.
-
-A pasta `.cursor/business-rules/` pode existir como documentação auxiliar para registrar descobertas, hipóteses, perguntas pendentes e decisões de negócio, mas ela não substitui as rules `.mdc`.
-
-Use `.cursor/business-rules/` para:
-
-- `discovered-rules.md`: rascunho das regras encontradas;
-- `pending-questions.md`: perguntas que ainda precisam de resposta;
-- `decisions.md`: decisões confirmadas pelo time/usuário.
-
-Depois que uma regra for confirmada e precisar orientar futuras alterações, transforme essa regra em uma rule ativa dentro de `.cursor/rules/`.
-
-## Como criar novas rules de negócio
-
-Quando uma regra de negócio for confirmada, crie uma nova rule ativa em `.cursor/rules/`.
-
-Padrão de nome recomendado:
+## Padrão de nome
 
 ```text
 .cursor/rules/2xx-business-<dominio>-auto.mdc
 ```
 
-Exemplos:
+Exemplos fictícios (criar no projeto real quando confirmado):
 
 ```text
-.cursor/rules/200-business-service-orders-auto.mdc
-.cursor/rules/210-business-users-permissions-auto.mdc
-.cursor/rules/220-business-invoices-auto.mdc
-.cursor/rules/230-business-travel-status-auto.mdc
+.cursor/rules/200-business-orders-auto.mdc
+.cursor/rules/210-business-permissions-auto.mdc
 ```
 
-Use `globs` para limitar o escopo da rule.
+## Documentação após criar rule
 
-Exemplo:
+- Atualizar `docs/cursor/rules-index.md`
+- README do projeto + **Alterações recentes** quando aplicável
 
-```yaml
----
-description: Regras de negócio para endpoints e services de ordens de serviço.
-globs: "{api/api_v1/endpoints/*service_order*.py,services/*service_order*.py,crud/*service_order*.py,schemas/*service_order*.py,models/*service_order*.py}"
-alwaysApply: false
----
-```
-
-## Conteúdo mínimo de uma rule de negócio
-
-Cada nova rule de negócio deve conter:
-
-```text
-# Rule: <nome do domínio>
-
-## Escopo
-Quais arquivos/módulos essa rule cobre.
-
-## Regras obrigatórias
-Lista objetiva das regras que nunca devem ser violadas.
-
-## Fluxos principais
-Fluxos que endpoints/services devem respeitar.
-
-## Permissões e bloqueios
-Quem pode fazer o quê e em quais condições.
-
-## Status e transições
-Estados permitidos, proibidos e efeitos colaterais.
-
-## Validações
-Campos obrigatórios, normalizações e duplicidades.
-
-## Integrações/eventos
-Quando chamar API externa, criar histórico, emitir evento etc.
-
-## Erros esperados
-Quando retornar 400, 403, 404, 409 etc.
-
-## Testes esperados
-Quais cenários precisam ser testados.
-
-## Fonte da regra
-Código, README, usuário ou decisão técnica.
-```
-
-## Sempre adicionar nova rule quando surgir regra nova
-
-Sempre que uma nova regra de negócio for identificada, criada ou confirmada durante uma conversa com o usuário, avalie se ela deve virar uma nova rule ou atualizar uma rule existente.
-
-Critérios para virar rule:
-
-- será aplicada em mais de um endpoint;
-- protege uma regra importante do negócio;
-- evita regressão futura;
-- já gerou erro antes;
-- impacta permissão, status, integração, financeiro, auditoria ou dados críticos;
-- precisa ser lembrada em futuras alterações.
-
-## Atualização de documentação, README e release notes
-
-Quando criar ou atualizar uma rule de negócio:
-
-- mantenha a rule ativa em `.cursor/rules/*.mdc`;
-- atualize `.cursor/rules/README.md` com a descrição da nova rule;
-- atualize `.cursor/business-rules/` se houver descoberta, pergunta ou decisão de apoio;
-- atualize `docs/cursor/README.md` se mudar o processo de aplicação;
-- atualize `docs/cursor/PROMPTS.md` se houver novo prompt útil;
-- atualize o README principal do projeto onde a rule será usada, se a regra impactar o uso real do projeto;
-- adicione linha em `Alterações recentes`, quando aplicável.
-
-## Saída esperada da análise
-
-Ao concluir a análise, entregue:
-
-1. resumo dos módulos encontrados;
-2. regras confirmadas pelo código/documentação;
-3. regras inferidas que precisam de confirmação;
-4. perguntas para o usuário;
-5. sugestão de novas rules a criar;
-6. arquivos `.mdc` sugeridos ou criados;
-7. próximos passos para aplicar em novos endpoints.
-
-Não altere endpoints existentes sem autorização explícita. Esta rule é primeiro para análise e composição de rules de negócio.
+Não altere endpoints sem autorização explícita — primeiro análise e composição de rules.

@@ -8,19 +8,7 @@ alwaysApply: true
 
 Mantenha a arquitetura em camadas. Cada pasta tem uma responsabilidade específica.
 
-## Fluxos permitidos
-
-### Fluxo com banco
-
-```text
-api -> services -> crud -> models/db
-```
-
-### Fluxo com API externa
-
-```text
-api -> services -> core client -> API externa
-```
+Fluxo geral (banco e integrações): ver `000-project-context-always.mdc`.
 
 ## Regras de dependência
 

@@ -39,7 +39,7 @@ Não versionar .env nem core/config.py. Não usar --reload no launch.json.
 ## Deploy Docker Swarm (FastAPI)
 
 ```text
-Use a rule 130-fastapi-swarm-deploy-manual.mdc (ou @130-fastapi-swarm-deploy-manual).
+Use a Skill deploy-swarm-fastapi (ou rule 130-fastapi-swarm-deploy-manual.mdc / @130-fastapi-swarm-deploy-manual).
 Adapte este projeto FastAPI para Docker Swarm conforme docs/contexto_infra_swarm_cursor.md.
 Antes de gerar arquivos, pergunte APP_PORT, STACK_NAME e módulo ASGI.
 Crie Dockerfile, deploy/stack.yml, deploy-swarm.yml, GET /health, .env.example e scripts.
@@ -147,7 +147,7 @@ Verifique se já existe alguma rule de negócio que cubra essa regra.
 Se existir, atualize a rule existente.
 Se não existir, crie uma nova rule em .cursor/rules/ usando o padrão 2xx-business-<dominio>-auto.mdc.
 
-Atualize também .cursor/rules/README.md e, se for relevante para o projeto, o README principal e a seção Alterações recentes.
+Atualize também docs/cursor/rules-index.md e, se for relevante para o projeto, o README principal e a seção Alterações recentes.
 ```
 
 ## Criar classe reutilizável no core

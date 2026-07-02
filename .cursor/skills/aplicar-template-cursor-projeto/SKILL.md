@@ -1,8 +1,13 @@
-# Guia para aplicar as Cursor Rules em projetos existentes
+---
+name: aplicar-template-cursor-projeto
+description: Aplica as Cursor Rules e o template FastAPI em projetos já existentes — copiar arquivos, analisar estrutura, migrar módulo a módulo e manter release notes. Use ao adotar o template em projeto legado ou quando o usuário perguntar como aplicar as rules em projeto existente.
+---
 
-[Voltar para o README principal](../../README.md)
+# Aplicar template Cursor em projeto existente
 
-Este guia explica como aplicar as rules em projetos FastAPI já existentes.
+## Objetivo
+
+Orientar a adoção incremental das Cursor Rules e do padrão FastAPI (`Endpoint -> Service -> CRUD -> Banco`) em projetos já em andamento, sem refatorar tudo de uma vez.
 
 ## Passo 1: copiar os arquivos
 
@@ -38,37 +43,7 @@ PSQL_HOST prod: {host}; homolog: {host}.
 Não versionar .env nem core/config.py real.
 ```
 
-Templates prontos para copiar/adaptar: [`templates/launch.json`](./templates/launch.json), [`templates/env-example-header.env`](./templates/env-example-header.env), [`templates/ci.yml`](./templates/ci.yml).
-
-### Deploy Swarm (FastAPI)
-
-Para projetos que vão para produção no Docker Swarm (`python-app-01/02/03`), inclua também:
-
-```text
-.cursor/rules/130-fastapi-swarm-deploy-manual.mdc
-.cursor/rules/131-docker-swarm-stack-auto.mdc
-.cursor/rules/132-github-actions-swarm-deploy-auto.mdc
-docs/contexto_infra_swarm_cursor.md
-docs/cursor/templates/Dockerfile.fastapi
-docs/cursor/templates/dockerignore
-docs/cursor/templates/deploy/stack.yml
-docs/cursor/templates/deploy-swarm.yml
-docs/cursor/templates/deploy/scripts/force-image-rollout.sh
-docs/cursor/templates/env-example-swarm.env
-```
-
-Prompt recomendado após copiar as rules:
-
-```text
-Use a rule 130-fastapi-swarm-deploy-manual.mdc.
-Adapte este projeto FastAPI para Docker Swarm conforme docs/contexto_infra_swarm_cursor.md.
-Antes de gerar arquivos, pergunte APP_PORT, STACK_NAME e módulo ASGI.
-Crie Dockerfile, deploy/stack.yml, deploy-swarm.yml, /health, .env.example e scripts.
-OTEL_APPEND_IP_SUFFIX=False no .env do servidor.
-Não versionar .env real.
-```
-
-Templates prontos: [`templates/Dockerfile.fastapi`](./templates/Dockerfile.fastapi), [`templates/deploy/stack.yml`](./templates/deploy/stack.yml), [`templates/deploy-swarm.yml`](./templates/deploy-swarm.yml), [`templates/env-example-swarm.env`](./templates/env-example-swarm.env).
+Templates prontos para copiar/adaptar: `docs/cursor/templates/launch.json`, `docs/cursor/templates/env-example-header.env`, `docs/cursor/templates/ci.yml`.
 
 ## Passo 2: abrir o projeto pela raiz
 
@@ -121,27 +96,11 @@ Com tabela:
 
 Use essa tabela para registrar novas pastas, módulos, endpoints, integrações, variáveis de ambiente e mudanças arquiteturais importantes.
 
-
-
 ## Descobrir regras de negócio de projeto existente
 
-Depois de copiar as rules para um projeto já em andamento, use a rule manual:
+Depois de copiar as rules para um projeto já em andamento, use a Skill **`descobrir-regras-negocio`** (ou rule `120-business-rules-discovery-manual.mdc`) antes de criar novos endpoints em domínios com regras espalhadas.
 
-```text
-120-business-rules-discovery-manual.mdc
-```
-
-Ela deve ser usada antes de criar novos endpoints em projetos que já possuem regras importantes espalhadas pelo código.
-
-Prompt recomendado:
-
-```text
-Use a rule 120-business-rules-discovery-manual.mdc.
-Analise todo o diretório do projeto atual para entender as regras de negócio principais.
-Não altere arquivos ainda.
-Liste as regras confirmadas pelo código/documentação, as regras inferidas que precisam de confirmação e faça perguntas objetivas para compor novas Cursor Rules específicas de negócio.
-Depois da minha confirmação, crie os arquivos .mdc necessários em .cursor/rules/ seguindo o padrão 2xx-business-<dominio>-auto.mdc.
-```
+Prompt recomendado: ver `docs/cursor/PROMPTS.md` (seção "Analisar regras de negócio de projeto existente").
 
 Quando uma nova regra de negócio for confirmada durante o desenvolvimento, atualize uma rule de negócio existente ou crie uma nova rule específica.
 
@@ -152,13 +111,6 @@ A rule `115-reusable-core-abstractions-auto.mdc` orienta o Cursor a avaliar nova
 Se a classe for reutilizável, por exemplo envio de e-mail, storage, PDF, QR Code, mensageria, cache, autenticação externa ou client genérico, considere criar em `core/` como classe abstrata ou base reutilizável.
 
 Se a classe for regra de negócio de um módulo específico, mantenha em `services/`.
-
-## Links úteis
-
-- [Índice das rules](./rules-index.md)
-- [Índice detalhado das rules](../../.cursor/rules/README.md)
-- [Prompts recomendados](./PROMPTS.md)
-
 
 ## Uso opcional de `.cursor/business-rules/`
 
@@ -184,3 +136,18 @@ Fluxo recomendado:
 ```text
 Análise do projeto -> .cursor/business-rules/ -> confirmação -> .cursor/rules/2xx-business-<dominio>-auto.mdc
 ```
+
+## Links úteis
+
+- [Índice das rules](../../docs/cursor/rules-index.md)
+- [Prompts recomendados](../../docs/cursor/PROMPTS.md)
+- [Skills do projeto](../)
+- [Observabilidade — referência](../../docs/observability/reference.md)
+- [Abstrações core](../../docs/cursor/core-abstractions.md)
+
+## Saída esperada
+
+1. Plano incremental de migração (módulos, prioridade, riscos)
+2. Lista de arquivos copiados ou criados
+3. Próximo módulo sugerido para refatoração
+4. Atualização do README com **Alterações recentes**, se aplicável

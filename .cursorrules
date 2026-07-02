@@ -5,11 +5,12 @@ CRUD deve conter apenas acesso ao banco.
 Core centraliza configurações, segurança e clients externos.
 Não versionar secrets, tokens, senhas, certificados ou .env real.
 Quando criar ou alterar módulo relevante, atualizar o README real do projeto e a seção Alterações recentes.
-Consulte .cursor/rules/README.md para entender as rules.
+Consulte docs/cursor/rules-index.md e .cursor/skills/ para workflows longos.
 
+Antes de criar uma nova rule operacional grande, avaliar Rule vs Skill (rule 005-rule-vs-skill-gate-always.mdc).
 Antes de criar uma nova classe, avaliar se ela é reutilizável e se deve ser criada como abstração em core/.
 Quando uma regra de negócio importante for descoberta ou desenvolvida, criar ou atualizar uma rule específica em .cursor/rules/.
-Para mapear projetos existentes, usar manualmente a rule 120-business-rules-discovery-manual.mdc.
+Para mapear projetos existentes, usar a Skill descobrir-regras-negocio ou a rule 120-business-rules-discovery-manual.mdc.
 
 
 Quando mapear regras de negócio de projetos existentes, use `.cursor/business-rules/` apenas como documentação auxiliar. Rules ativas devem continuar em `.cursor/rules/*.mdc`.

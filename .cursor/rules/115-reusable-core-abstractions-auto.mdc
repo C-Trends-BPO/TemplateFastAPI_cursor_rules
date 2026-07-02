@@ -4,159 +4,18 @@ globs: "**/*.py"
 alwaysApply: false
 ---
 
-# Rule: Classes reutilizáveis e abstrações no core
+# Rule: Classes reutilizáveis e abstrações no `core/`
 
-Sempre que for criar uma nova classe, antes de implementar, avalie se ela representa uma capacidade reutilizável do projeto ou apenas uma regra específica de um módulo.
+Antes de criar uma classe nova, avalie se é capacidade técnica reutilizável ou regra de negócio de um módulo.
 
-## Objetivo
+## Princípios
 
-Evitar que classes genéricas fiquem presas dentro de `services/`, `api/`, `crud/` ou módulos específicos quando podem ser reutilizadas futuramente por outros domínios.
+- **Reutilizável** (e-mail, storage, PDF, mensageria, client HTTP) → `core/` com contrato abstrato quando fizer sentido.
+- **Domínio específico** (`OrderService`, regras de status) → `services/`.
+- Evitar: `Core -> Service`, `Core -> CRUD/model de domínio`.
 
-Exemplos de classes candidatas a abstração em `core/`:
+## Referência completa
 
-- envio de e-mail;
-- envio de SMS;
-- envio de WhatsApp;
-- geração de arquivos;
-- upload/storage;
-- client HTTP genérico;
-- autenticação externa;
-- assinatura digital;
-- geração de PDF;
-- geração de QR Code;
-- parser/importador de arquivos;
-- normalizador reutilizável;
-- validador genérico;
-- publicador de eventos;
-- mensageria/fila;
-- auditoria/log estruturado;
-- cache;
-- criptografia;
-- integração com provedores externos.
+Exemplos, checklist e padrões de pacote: `docs/cursor/core-abstractions.md`.
 
-## Checklist obrigatório antes de criar uma classe
-
-Antes de criar uma classe nova, responda mentalmente:
-
-1. Essa classe pode ser usada por mais de um módulo agora ou no futuro?
-2. Ela representa uma capacidade técnica genérica ou uma regra de negócio específica?
-3. Ela depende diretamente de model/schema/CRUD de um módulo específico?
-4. Ela pode ser expressa como uma interface/contrato abstrato?
-5. Ela terá implementações diferentes no futuro, como SMTP, SendGrid, SES, Zenvia, Firebase, S3, API parceira etc.?
-
-## Quando criar em `core/`
-
-Crie em `core/` quando a classe for uma capacidade técnica reutilizável.
-
-Padrão recomendado:
-
-```text
-core/
-├── email/
-│   ├── base.py
-│   ├── smtp.py
-│   └── schemas.py
-├── storage/
-│   ├── base.py
-│   └── local.py
-└── integrations/
-    └── ...
-```
-
-Use classe abstrata quando houver chance real de múltiplas implementações.
-
-Exemplo:
-
-```python
-from abc import ABC, abstractmethod
-
-
-class AbstractEmailClient(ABC):
-    @abstractmethod
-    async def send_email(
-        self,
-        *,
-        to: list[str],
-        subject: str,
-        body: str,
-        cc: list[str] | None = None,
-        bcc: list[str] | None = None,
-    ) -> None:
-        """Envia um e-mail usando a implementação concreta."""
-        raise NotImplementedError
-```
-
-A implementação concreta pode ficar no mesmo pacote:
-
-```python
-class SMTPEmailClient(AbstractEmailClient):
-    async def send_email(self, *, to, subject, body, cc=None, bcc=None) -> None:
-        ...
-```
-
-## Quando criar em `services/`
-
-Crie em `services/` quando a classe representa regra de negócio de um domínio específico.
-
-Exemplos:
-
-- `UserService`;
-- `OrderService`;
-- `CarService`;
-- `ServiceOrderService`;
-- `InvoiceService`.
-
-Esses services podem usar classes abstratas/concretas do `core/`, mas não devem transformar regra específica em utilitário genérico artificialmente.
-
-## Regra de dependência
-
-Permitido:
-
-```text
-Service -> Core abstraction
-Service -> Core concrete client
-Service -> CRUD
-Endpoint -> Service
-```
-
-Evite:
-
-```text
-Core -> Service
-Core -> CRUD específico
-Core -> Model de domínio específico
-Core -> Schema de endpoint específico
-```
-
-O `core/` deve ser reutilizável e não depender da regra de negócio do projeto.
-
-## Quando não abstrair
-
-Não crie classe abstrata se:
-
-- só existe uma implementação simples;
-- a classe é específica de um módulo;
-- a abstração vai adicionar complexidade sem benefício real;
-- a implementação ainda não está clara;
-- a classe depende fortemente de models, schemas ou CRUDs específicos.
-
-Nesse caso, crie primeiro no `service` do módulo e extraia para `core/` apenas quando houver reutilização real ou provável.
-
-## Como explicar a decisão
-
-Ao criar uma nova classe, informe no resumo final:
-
-- onde a classe foi criada;
-- por que ela ficou em `core/` ou em `services/`;
-- se foi criada como abstrata ou concreta;
-- quais módulos podem reutilizá-la futuramente;
-- se algum README ou release note foi atualizado.
-
-## Atualização de documentação
-
-Se uma nova abstração reutilizável for criada em `core/`, atualize:
-
-- `core/README.md`, se existir;
-- README principal, se a abstração mudar o uso do projeto;
-- seção `Alterações recentes`, quando for mudança relevante;
-- testes ou exemplos, quando aplicável.
+Ao criar abstração em `core/`, atualizar `core/README.md` (se existir), README principal e **Alterações recentes**.

@@ -1,0 +1,40 @@
+---
+description: Princípios de observabilidade FastAPI — OpenTelemetry, Tempo, Loki e logs correlacionados.
+globs:
+  - "**/*.py"
+  - "**/config*"
+  - "**/requirements*.txt"
+  - "**/pyproject.toml"
+alwaysApply: true
+---
+
+# Observabilidade — OpenTelemetry + Tempo + Loki
+
+Sempre responder em português do Brasil.
+
+## Princípios obrigatórios
+
+- OpenTelemetry para traces; Grafana Tempo para armazenamento; Loki para logs.
+- Traces via OTLP HTTP na porta **4318** — **nunca** usar porta `3200` na aplicação.
+- Logs correlacionados com `trace_id`, `span_id` e `service.name`.
+- Níveis de log: `WARNING` para 4xx comuns; `ERROR` para 5xx e 401/403.
+- Handler global de exceções; não expor stack trace ao cliente.
+- Configuração em `settings` (`core/config.py`), **não** em `.env` nem `os.getenv`.
+- Código isolado em `core/telemetry.py`, `core/logging_config.py`, `core/host_info.py`.
+- `OTEL_SERVICE_NAME` e `LOKI_APP_NAME` são nome **base**; ambiente (`type_name`) e IP via properties.
+- No Docker Swarm: `OTEL_APPEND_IP_SUFFIX=False`.
+
+## Implementação
+
+Antes de alterar arquivos, analise a estrutura do projeto e apresente um plano curto.
+
+**Use a Skill `implementar-otel-loki-fastapi`** (`.cursor/skills/implementar-otel-loki-fastapi/SKILL.md`).
+
+Referência completa com código: `docs/observability/reference.md`.
+
+## Anti-padrões
+
+- Duplicar `app`, `dictConfig`, `LoggingInstrumentor`, `FastAPIInstrumentor`.
+- `logger.error` fixo para todo 4xx.
+- Hardcodar nome/host da aplicação fora do config.
+- Rotas de teste (`/teste-erro-loki`) sem `ENABLE_TEST_ROUTES=False` em produção.

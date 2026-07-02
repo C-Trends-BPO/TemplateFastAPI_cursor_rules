@@ -11,7 +11,9 @@ Endpoint -> Service -> Core Client -> API externa
 
 ## Documentações importantes
 - [Rules criadas para usar com o TemplateFastAPI](https://github.com/IgorSantRocha/TemplateFastAPI_v2)
-- [Explicação de cada rule](./.cursor/rules/README.md)
+- [Índice das rules](./docs/cursor/rules-index.md)
+- [Índice detalhado das rules](./.cursor/rules/README.md)
+- [Skills de workflow](./.cursor/skills/README.md)
 - [Guia detalhado para aplicar em projetos existentes](./docs/cursor/README.md)
 - [Prompts recomendados para o Cursor](./docs/cursor/PROMPTS.md)
 
@@ -19,35 +21,31 @@ Endpoint -> Service -> Core Client -> API externa
 
 ```text
 .cursor/
-└── rules/
+├── rules/
+│   ├── README.md
+│   ├── 000-project-context-always.mdc
+│   └── ...
+└── skills/
     ├── README.md
-    ├── 000-project-context-always.mdc
-    ├── 010-architecture-always.mdc
-    ├── 020-fastapi-endpoints-auto.mdc
-    ├── 030-services-auto.mdc
-    ├── 040-crud-auto.mdc
-    ├── 050-schemas-models-auto.mdc
-    ├── 060-core-integrations-auto.mdc
-    ├── 070-tests-auto.mdc
-    ├── 080-security-config-always.mdc
-    ├── 090-docs-readme-auto.mdc
-    ├── 095-project-readme-sync-auto.mdc
-    ├── 100-task-workflow-agent.mdc
-    ├── 110-python-style-auto.mdc
-    ├── 115-reusable-core-abstractions-auto.mdc
-    ├── 120-business-rules-discovery-manual.mdc
-    ├── 130-fastapi-swarm-deploy-manual.mdc
-    ├── 131-docker-swarm-stack-auto.mdc
-    └── 132-github-actions-swarm-deploy-auto.mdc
+    ├── aplicar-template-cursor-projeto/
+    ├── auditar-rules-skills-docs/
+    ├── configurar-ci-github-actions/
+    ├── descobrir-regras-negocio/
+    ├── executar-tarefa-template-fastapi/
+    ├── implementar-otel-loki-fastapi/
+    ├── deploy-swarm-fastapi/
+    └── migrar-env-debug-fastapi/
 
 docs/
 ├── contexto_infra_swarm_cursor.md
+├── observability/
+│   └── reference.md
 └── cursor/
     ├── README.md
     ├── PROMPTS.md
+    ├── rules-index.md
+    ├── core-abstractions.md
     └── templates/
-        ├── deploy/
-        └── deploy-swarm.yml
 
 AGENTS.md
 .cursorrules
@@ -92,6 +90,8 @@ Exemplo:
 
 | Data | Tipo | Módulo/Pasta | Alteração | Impacto |
 | ---- | ---- | ------------ | --------- | ------- |
+| 2026-07-02 | Refatorado | `.cursor/rules/`, `.cursor/skills/`, `docs/` | Auditoria rules/skills/docs: rules longas viraram stubs + Skills; rule 333 renomeada e enxugada; Skill `deploy-swarm-fastapi`; contexto global reduzido. | Workflows invocáveis por `@skill`; princípios globais curtos; implementação em `docs/observability/reference.md` e skills. |
+| 2026-07-02 | Adicionado | `.cursor/skills/`, `docs/cursor/rules-index.md`, `docs/observability/`, `005-rule-vs-skill-gate` | Skills de workflow do projeto fulfillment + docs de suporte e gate Rule vs Skill. | Workflows longos (env, CI, OTEL, negócio, auditoria) invocáveis por `@skill`; AGENTS.md atualizado. |
 | 2026-06-29 | Adicionado | `.cursor/rules/130-132`, `docs/cursor/templates/deploy*` | Rules e templates para deploy FastAPI em Docker Swarm (Dockerfile, stack, workflow GHCR, `/health`). | Projetos podem adaptar produção no Swarm com gate de `APP_PORT` e pipeline separado do CI. |
 
 ## Novas rules importantes
@@ -106,7 +106,7 @@ A rule `120-business-rules-discovery-manual.mdc` deve ser chamada manualmente qu
 
 ### Deploy Docker Swarm (FastAPI)
 
-As rules `130-fastapi-swarm-deploy-manual.mdc`, `131-docker-swarm-stack-auto.mdc` e `132-github-actions-swarm-deploy-auto.mdc` orientam adaptação para produção no Docker Swarm. Invocar `@130` antes de gerar arquivos — é obrigatório perguntar `APP_PORT` e `STACK_NAME`. Contexto: `docs/contexto_infra_swarm_cursor.md`.
+As rules `130-fastapi-swarm-deploy-manual.mdc`, `131-docker-swarm-stack-auto.mdc` e `132-github-actions-swarm-deploy-auto.mdc` são stubs que apontam para a Skill `deploy-swarm-fastapi`. Invocar `@deploy-swarm-fastapi` ou `@130` — é obrigatório perguntar `APP_PORT` e `STACK_NAME`. Contexto: `docs/contexto_infra_swarm_cursor.md`.
 
 Prompt recomendado:
 
@@ -137,6 +137,7 @@ Ela não substitui as rules `.mdc`. As instruções que o Cursor deve aplicar au
 
 Leia também:
 
-- [Explicação das rules](./.cursor/rules/README.md)
+- [Índice das rules](./docs/cursor/rules-index.md)
+- [Índice detalhado das rules](./.cursor/rules/README.md)
 - [Guia de aplicação em projetos existentes](./docs/cursor/README.md)
 - [Prompts recomendados](./docs/cursor/PROMPTS.md)
