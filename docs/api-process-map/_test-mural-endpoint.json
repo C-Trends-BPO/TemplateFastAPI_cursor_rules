@@ -1,0 +1,21 @@
+{
+  "external_id": "FASTAPI_DOC__TemplateFastAPI__ENDPOINT__GET__health",
+  "title": "[TemplateFastAPI] GET /health — Documentacao tecnica",
+  "summary": "Documentacao tecnica de teste do endpoint GET /health (skill fastapi-process-mapper).",
+  "content": "<!-- FASTAPI_PROCESS_MAPPER:START --><h1>GET /health</h1><p>Endpoint de healthcheck para validacao do teste de publicacao no Mural.</p><p>Origem: <code>inferido_pelo_agente</code>.</p><!-- FASTAPI_PROCESS_MAPPER:END -->",
+  "item_type": "manual",
+  "severity": "informational",
+  "target_type": "groups",
+  "is_active": true,
+  "is_indefinite": true,
+  "created_by_id": 122,
+  "ids": [34],
+  "project_name": "TemplateFastAPI",
+  "doc_kind": "endpoint",
+  "doc_version": "2026.07",
+  "source": "skill_fastapi_process_mapper",
+  "status": "published",
+  "parent_external_id": "FASTAPI_DOC__TemplateFastAPI__ROOT__manual",
+  "sort_order": 101,
+  "attachments": null
+}

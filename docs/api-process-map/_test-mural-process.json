@@ -1,0 +1,21 @@
+{
+  "external_id": "FASTAPI_DOC__TemplateFastAPI__PROCESSO__onboarding_dev",
+  "title": "[TemplateFastAPI] Processo — Onboarding de desenvolvedor",
+  "summary": "Processo funcional de teste para onboarding de novos desenvolvedores no projeto template.",
+  "content": "<!-- FASTAPI_PROCESS_MAPPER:START --><h1>Onboarding de desenvolvedor</h1><p>Processo de teste vinculado ao item raiz do projeto TemplateFastAPI.</p><p>Status: <code>pendente_validacao_usuario</code>.</p><!-- FASTAPI_PROCESS_MAPPER:END -->",
+  "item_type": "manual",
+  "severity": "informational",
+  "target_type": "groups",
+  "is_active": true,
+  "is_indefinite": true,
+  "created_by_id": 122,
+  "ids": [34],
+  "project_name": "TemplateFastAPI",
+  "doc_kind": "process",
+  "doc_version": "2026.07",
+  "source": "skill_fastapi_process_mapper",
+  "status": "published",
+  "parent_external_id": "FASTAPI_DOC__TemplateFastAPI__ROOT__manual",
+  "sort_order": 201,
+  "attachments": null
+}

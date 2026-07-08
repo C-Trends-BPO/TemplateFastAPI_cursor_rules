@@ -1,0 +1,22 @@
+{
+  "external_id": "FASTAPI_DOC__TemplateFastAPI__ROOT__manual",
+  "title": "[TemplateFastAPI] Mapa da documentacao",
+  "summary": "Indice principal da documentacao tecnica e funcional da API TemplateFastAPI (teste skill fastapi-process-mapper).",
+  "content": "<!-- FASTAPI_PROCESS_MAPPER:START --><h1>Mapa da documentacao</h1><p>Teste de publicacao via skill <strong>fastapi-process-mapper</strong> em homologacao.</p><!-- FASTAPI_PROCESS_MAPPER:END -->",
+  "item_type": "manual",
+  "severity": "informational",
+  "target_type": "groups",
+  "is_active": true,
+  "is_indefinite": true,
+  "created_by_id": 122,
+  "ids": [34],
+  "project_name": "TemplateFastAPI",
+  "doc_kind": "overview",
+  "doc_version": "2026.07",
+  "source": "skill_fastapi_process_mapper",
+  "status": "draft",
+  "parent_id": null,
+  "parent_external_id": null,
+  "sort_order": 0,
+  "attachments": null
+}
