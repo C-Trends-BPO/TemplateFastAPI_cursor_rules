@@ -34,7 +34,9 @@ Se o usuário não informar modo, usar `MODO_ANALISAR`.
   - não alterar regra de negócio, query, autenticação ou contrato sem validação explícita;
   - detectar Pydantic v1/v2 antes de editar;
   - não misturar padrões v1 e v2;
-  - preservar `operation_id` estável quando houver risco de consumidores externos.
+  - preservar `operation_id` estável quando houver risco de consumidores externos;
+  - não reduzir o Example Value do Swagger com `json_schema_extra.examples` ou `Field(examples=...)` mínimo no model raiz — preferir exemplo auto-gerado pelo schema;
+  - marcar campos obrigatórios via tipo/`Field` conforme uso real no handler, não via exemplo parcial.
 
 ## MODO_VALIDAR
 - Objetivo: medir completude e consistência da documentação.

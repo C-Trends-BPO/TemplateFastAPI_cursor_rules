@@ -70,6 +70,8 @@ Define que CRUD deve cuidar apenas de acesso ao banco, filtros, paginação e pe
 
 Define `commit: bool` no CRUD base, transação única no service/endpoint e separação sessão vs commit (complementa rule 015).
 
+Para auditar legado e montar/aplicar plano de migração: Skill `migrar-transacao-crud-fastapi` (`.cursor/skills/migrar-transacao-crud-fastapi/`).
+
 ### `050-schemas-models-auto.mdc`
 
 Define separação entre schemas Pydantic e models SQLAlchemy, além do padrão Base/Create/Update/Response.

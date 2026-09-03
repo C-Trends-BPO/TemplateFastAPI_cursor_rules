@@ -24,6 +24,7 @@ Mapear duplicação, rules gigantes, referências órfãs e oportunidades de enx
 - [ ] docs/observability, docs/cursor/templates atualizados
 - [ ] Rule 015 (sessão async) alinhada com 020, 045 e templates db/
 - [ ] Endpoints usam DbDep; get_db sem auto-commit quando CRUD commita
+- [ ] Rule 045 referencia Skill `migrar-transacao-crud-fastapi` (plano/migração)
 ```
 
 ## Classificação por tipo

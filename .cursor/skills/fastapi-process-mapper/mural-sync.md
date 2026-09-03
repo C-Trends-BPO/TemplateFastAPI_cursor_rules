@@ -8,7 +8,7 @@ A skill **não exige** variáveis de ambiente para publicar no Mural. Os valores
 
 | Campo | Homologação | Produção |
 |-------|-------------|----------|
-| `api_base_url` | `https://192.168.0.214/hg-api-mural/api/v1/items` | `https://192.168.0.214/api-mural/api/v1/items` |
+| `api_base_url` | `https://192.168.0.214/hg-api-mural/api/v1/items` | `http://192.168.0.215/api-mural/api/v1/items` |
 | `target_group_id` | `34` | `323` |
 | `created_by_id` | `122` | `1037` |
 | `requires_token` | `false` | `false` |

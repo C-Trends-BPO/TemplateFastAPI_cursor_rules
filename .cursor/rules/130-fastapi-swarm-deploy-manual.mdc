@@ -24,4 +24,8 @@ Invoque com `@130-fastapi-swarm-deploy-manual` ao adaptar produção no Docker S
 
 Complementa `075` (CI separado), `131` (stack), `132` (workflow), `333-observability-otel-loki-always.mdc` (`OTEL_APPEND_IP_SUFFIX=False` no Swarm).
 
+## Deploy encadeado ao CI (não paralelo)
+
+Quando o projeto já tiver `ci.yml` na main, o `deploy-swarm.yml` deve ser disparado por **`workflow_run`** (após o CI verde), com gate `if: ${{ github.event.workflow_run.conclusion == 'success' }}`. **Nunca** `on: push` em paralelo ao CI. Usar `github.event.workflow_run.head_sha` (commit testado) no checkout, tag GHCR, `CACHE_BUST` e wait. Sem CI no projeto, **perguntar** antes de usar `on: push`. Detalhes na rule `132` e na Skill.
+
 Contexto: `docs/contexto_infra_swarm_cursor.md`.

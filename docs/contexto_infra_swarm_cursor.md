@@ -334,7 +334,9 @@ Fluxo desejado:
 ```text
 Push na branch main
         ↓
-GitHub Actions Self-hosted Runner
+GitHub Actions — CI (ci.yml, ubuntu-latest, pytest)
+        ↓ (somente se o CI concluir com sucesso)
+GitHub Actions — Deploy (deploy-swarm.yml, self-hosted runner)
         ↓
 Build da imagem Docker
         ↓
@@ -861,13 +863,34 @@ Criar:
 .github/workflows/deploy-swarm.yml
 ```
 
+### Deploy encadeado ao CI (não paralelo)
+
+O deploy é um **workflow separado** do `ci.yml` (rule `075`), mas **encadeado**: só roda **após** o CI concluir com sucesso na main. Não rodar deploy em paralelo com o CI — isso permitiria publicar código que ainda não passou nos testes.
+
+"Pipeline separado" (`ci.yml` × `deploy-swarm.yml`) **não** significa "rodar ao mesmo tempo". Fluxo:
+
+```text
+push main → CI (pytest) → success → Deploy Swarm (GHCR + stack deploy)
+                        → failure → deploy NÃO roda
+```
+
+- **1 push na main = 1 run de CI + 0 ou 1 run de Deploy** (o deploy só existe se o CI ficar verde).
+- **Proibido** `on: push` no `deploy-swarm.yml` quando o projeto já tem `ci.yml` na main — usar `workflow_run` com gate de sucesso.
+- **PRs:** só o CI roda; o deploy não (o filtro `branches: [main]` do `workflow_run` restringe ao main).
+- Se o projeto **não** tiver `ci.yml`, **perguntar** ao usuário antes de usar `on: push` no deploy (preferir criar o CI e encadear).
+
+**Armadilha do `workflow_run` — SHA do commit:** `github.sha` **não** é o commit testado pelo CI. Usar sempre `github.event.workflow_run.head_sha` (sugestão: `env.COMMIT_SHA`) em `checkout` (`ref`), tag GHCR, `CACHE_BUST` e no grep do `Wait for replicas`.
+
 Exemplo:
 
 ```yaml
 name: Build and Deploy to Docker Swarm
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]   # nome EXATO do workflow em ci.yml (name: CI)
+    types:
+      - completed
     branches:
       - main
 
@@ -875,10 +898,14 @@ env:
   STACK_NAME: minha_app
   STACK_FILE: deploy/stack.yml
   ENV_FILE: /opt/envs/minha-app.env
+  COMMIT_SHA: ${{ github.event.workflow_run.head_sha }}
 
 jobs:
   deploy:
     runs-on: [self-hosted, linux, swarm]
+
+    # Gate: só faz deploy se o CI concluiu com sucesso.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     permissions:
       contents: read
@@ -891,11 +918,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.COMMIT_SHA }}
 
       - name: Define image name
         run: |
           IMAGE_NAME=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
-          echo "IMAGE=ghcr.io/${IMAGE_NAME}:${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "IMAGE=ghcr.io/${IMAGE_NAME}:${COMMIT_SHA}" >> $GITHUB_ENV
           echo "IMAGE_LATEST=ghcr.io/${IMAGE_NAME}:latest" >> $GITHUB_ENV
 
       - name: Login to GHCR
@@ -914,7 +943,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            CACHE_BUST=${{ github.sha }}
+            CACHE_BUST=${{ env.COMMIT_SHA }}
           tags: |
             ${{ env.IMAGE }}
             ${{ env.IMAGE_LATEST }}
@@ -972,7 +1001,7 @@ jobs:
           #
           # Critérios de sucesso:
           #   docker service ls → inventario_gtn_web 3/3
-          #   docker service ps → 3 tasks Running na MESMA tag (${GITHUB_SHA})
+          #   docker service ps → 3 tasks Running na MESMA tag (${COMMIT_SHA}, do workflow_run.head_sha)
           #
           # Ver implementação completa em .github/workflows/deploy-swarm.yml
 ```
@@ -1018,7 +1047,7 @@ O script usa `--update-order stop-first` e `--with-registry-auth`.
 
 ### `docker pull` antes do deploy
 
-Após `build-push`, executar `docker pull` da tag `${GITHUB_SHA}` no manager (runner):
+Após `build-push`, executar `docker pull` da tag do commit (`${COMMIT_SHA}` via `workflow_run.head_sha`; `${GITHUB_SHA}` apenas em projetos legados com `on: push`) no manager (runner):
 
 - Confirma que a imagem está no registry antes de `docker run` (migrations) e `stack deploy`.
 - Reduz tasks `Rejected` com `No such image` nos nós do Swarm.
@@ -1263,6 +1292,7 @@ Ao adaptar o projeto, o Cursor deve:
 22. Ajustar `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` e CORS conforme domínio real. **Sempre incluir `localhost,127.0.0.1`** no início de `ALLOWED_HOSTS` para healthchecks Docker/HAProxy internos; evitar typo `ALLOWED_HOSTS=ALLOWED_HOSTS=...`.
 23. Validar que o projeto inicia sem depender de arquivos locais não versionados.
 24. No workflow de deploy, incluir passo **Wait for replicas** com timeout **≥ 600s** e validação de **mesma tag** nas 3 réplicas (seção 17).
+24a. Quando existir `ci.yml` na main, disparar o deploy via **`workflow_run`** (após CI verde) com gate `if: workflow_run.conclusion == 'success'` — **nunca** `on: push` em paralelo ao CI. Usar `github.event.workflow_run.head_sha` para checkout, imagem, `CACHE_BUST` e wait (seção 17). Sem CI no projeto, perguntar ao usuário antes de usar `on: push`.
 25. Com porta **`mode: host`**, usar `update_config.order: stop-first` — `start-first` causa `host-mode port already in use` (seção 15 / stack).
 26. Após `build-push`, executar **`docker pull`** da tag do commit antes de migrations e `stack deploy` (seção 17).
 27. Em runner self-hosted, usar **`CACHE_BUST=${{ github.sha }}`** no build para não reutilizar layer `COPY . .` com código antigo (seção 12 e 17).
@@ -1384,7 +1414,9 @@ via variáveis de ambiente.
 ```text
 GitHub
   ↓ push main
-GitHub Actions Self-hosted Runner no python-app-01
+GitHub Actions — CI (ci.yml, pytest)
+  ↓ success (gate workflow_run)
+GitHub Actions — Deploy Self-hosted Runner no python-app-01
   ↓ build
 GitHub Container Registry
   ↓ docker stack deploy

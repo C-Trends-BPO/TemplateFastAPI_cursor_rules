@@ -6,6 +6,8 @@ alwaysApply: false
 
 # Transação e commit no CRUD
 
+**Use a Skill `migrar-transacao-crud-fastapi`** em `.cursor/skills/migrar-transacao-crud-fastapi/SKILL.md` para auditar legado, gerar plano de migração e aplicar refatorações fase a fase.
+
 Complementa [`040-crud-auto.mdc`](040-crud-auto.mdc) e [`015-db-session-auto.mdc`](015-db-session-auto.mdc). Use em projetos FastAPI + SQLAlchemy (`AsyncSession` ou `Session`).
 
 ## Sessão vs transação

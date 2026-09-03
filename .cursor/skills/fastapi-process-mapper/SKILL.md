@@ -56,7 +56,7 @@ Presets embutidos (fonte: `mural-presets.yml`):
 | Ambiente | `api_base_url` | `target_group_id` | `created_by_id` |
 |----------|----------------|-------------------|-----------------|
 | homolog | `https://192.168.0.214/hg-api-mural/api/v1/items` | `34` | `122` |
-| prod | `https://192.168.0.214/api-mural/api/v1/items` | `323` | `1037` |
+| prod | `http://192.168.0.215/api-mural/api/v1/items` | `323` | `1037` |
 
 Regras de separação:
 - nunca misturar preset de homolog com prod na mesma execução;
@@ -82,6 +82,14 @@ Saída esperada do bootstrap:
 - `MODO_SWAGGER_APLICAR`: pode editar decorators/schemas somente após resumo de impacto e confirmação.
 - Nunca alterar regras de negócio, queries, autenticação, contratos e rotas sem aprovação explícita.
 - Se houver risco para `operation_id` usado externamente, parar e pedir validação do usuário.
+
+## OpenAPI — exemplos e campos obrigatórios (Pydantic v2)
+- Não substituir o exemplo auto-gerado pelo Pydantic/FastAPI por payload mínimo em `json_schema_extra.examples` ou `Field(examples=...)` no model raiz do request/response.
+- Preferir o exemplo gerado pelo schema (todos os campos visíveis no Swagger, incluindo opcionais).
+- Só usar `json_schema_extra.examples` quando o exemplo for **completo e realista** (todos os campos do model), nunca reduzido ou "slim".
+- Sinalizar obrigatoriedade via tipo sem `Optional` + `Field(..., description="(obrigatório)")`, conferindo o uso real no handler/service antes de alterar o schema.
+- Não confundir documentação com contrato: tornar campo obrigatório no Pydantic altera validação em runtime — exigir aprovação explícita.
+- Anti-padrão: exemplos "slim" copiados de testes unitários ou fixtures mínimas que escondem campos opcionais que integradores precisam ver.
 
 ## Referências detalhadas
 - Modos e prompts: [modos-e-prompts.md](modos-e-prompts.md)

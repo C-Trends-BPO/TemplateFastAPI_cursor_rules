@@ -13,7 +13,7 @@ environments:
 
   prod:
     label: Produção
-    api_base_url: https://192.168.0.214/api-mural/api/v1/items
+    api_base_url: http://192.168.0.215/api-mural/api/v1/items
     target_group_id: 323
     created_by_id: 1037
     requires_token: false

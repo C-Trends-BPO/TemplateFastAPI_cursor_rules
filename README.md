@@ -90,6 +90,7 @@ Exemplo:
 
 | Data | Tipo | Módulo/Pasta | Alteração | Impacto |
 | ---- | ---- | ------------ | --------- | ------- |
+| 2026-07-15 | Adicionado | `.cursor/skills/migrar-transacao-crud-fastapi/`, rule `045-*` | Skill de auditoria e plano/migração de transações CRUD (`commit=False`, commit único), com modos plano e aplicar. | Workflow invocável para refatorar legado alinhado às rules 015/040/045 e desempenho do pool. |
 | 2026-07-02 | Atualizado | `docs/observability/`, skills OTEL/Swarm, `.cursor/rules/333-*`, templates deploy | Validação Context7: fork safety Gunicorn (`OTEL_DEFER_INIT`, `gunicorn_conf.py`), vars OTEL/LOKI no stack, endpoint `/v1/traces`, `httpx` em vez de `requests`. | Traces confiáveis no Swarm; settings vs `.env` esclarecido. |
 | 2026-07-02 | Adicionado | `.cursor/rules/015-*`, `docs/cursor/templates/db/`, rules 020/045/070 | Rule e templates para sessão SQLAlchemy async (`get_db`, `DbDep`); endpoints com `Annotated`; testes com `dependency_overrides`. | Padrão async alinhado ao FastAPI/SQLAlchemy 2.0; commit permanece no CRUD/service (rule 045). |
 | 2026-07-02 | Corrigido | `.cursor/rules/055-*`, `050-*`, `migrar-env-debug-fastapi`, `docs/cursor/templates/datetime/` | Rule 055 movida para `.cursor/rules/` (globs, não always); exemplos Pydantic v2 (`ConfigDict`, `SettingsConfigDict`); referências apontam para templates. | Datetime/timezone ativo por glob; sem sintaxe Pydantic v1 nos exemplos. |

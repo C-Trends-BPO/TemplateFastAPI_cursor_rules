@@ -21,6 +21,7 @@ Endpoint -> Service -> Core Client -> API externa
 | `executar-tarefa-template-fastapi` | Tarefas multi-arquivo, novo módulo |
 | `descobrir-regras-negocio` | Mapear projeto legado, rules 2xx |
 | `migrar-env-debug-fastapi` | `.env`, launch.json, perfis |
+| `migrar-transacao-crud-fastapi` | Plano/migração `commit` único (rules 015/040/045) |
 | `configurar-ci-github-actions` | Pipeline GitHub Actions |
 | `implementar-otel-loki-fastapi` | OTEL, Tempo, Loki |
 | `deploy-swarm-fastapi` | Docker Swarm — Dockerfile, stack, GHCR |

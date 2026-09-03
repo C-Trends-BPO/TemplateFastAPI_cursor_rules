@@ -45,7 +45,7 @@ Endpoint -> Service -> Core Client -> API externa
 | `020-fastapi-endpoints-auto.mdc` | Endpoints leves |
 | `030-services-auto.mdc` | Regras de negócio em services |
 | `040-crud-auto.mdc` | CRUD só acesso ao banco |
-| `045-crud-transaction-commit-auto.mdc` | `commit: bool`, transação única |
+| `045-crud-transaction-commit-auto.mdc` | `commit: bool`, transação única → Skill `migrar-transacao-crud-fastapi` |
 | `046-alembic-version-table-auto.mdc` | Tabela de versão Alembic |
 | `050-schemas-models-auto.mdc` | Schemas vs models |
 | `055-datetime-timezone-auto.mdc` | UTC no banco, fuso local na resposta (`SPDateTime`) |
@@ -67,6 +67,7 @@ Endpoint -> Service -> Core Client -> API externa
 | `100-task-workflow-agent.mdc` | `executar-tarefa-template-fastapi` | Tarefas maiores no template |
 | `120-business-rules-discovery-manual.mdc` | `descobrir-regras-negocio` | Mapear regras em projeto legado |
 | `130-fastapi-swarm-deploy-manual.mdc` | `deploy-swarm-fastapi` | Deploy Docker Swarm (gate APP_PORT/STACK_NAME) |
+| `045-crud-transaction-commit-auto.mdc` | `migrar-transacao-crud-fastapi` | Plano/migração commit único por request |
 
 Skills adicionais em `.cursor/skills/`:
 
@@ -75,6 +76,7 @@ Skills adicionais em `.cursor/skills/`:
 - `configurar-ci-github-actions` — pipeline GitHub Actions
 - `implementar-otel-loki-fastapi` — implementação completa OTEL+Loki
 - `deploy-swarm-fastapi` — Dockerfile, stack, workflow GHCR
+- `migrar-transacao-crud-fastapi` — auditoria e plano de migração de transações CRUD
 
 ## Rules de negócio (padrão — não versionadas no template)
 

@@ -1,9 +1,15 @@
 # Template .github/workflows/deploy-swarm.yml — adaptar STACK_NAME, ENV_FILE e ASGI_MODULE.
-# Pipeline separado de ci.yml (rule 075). Não incluir migrate Django; Alembic é opcional.
+# Pipeline separado de ci.yml (rule 075), porém ENCADEADO: só roda após o CI passar na main.
+# Gatilho workflow_run: 1 push na main = 1 run de CI + 0 ou 1 run de Deploy (após CI verde).
+# NÃO usar "on: push" aqui quando o projeto já tem ci.yml na main (deploy paralelo ao CI é proibido).
+# Não incluir migrate Django; Alembic é opcional.
 name: Build and Deploy to Docker Swarm
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]   # nome EXATO do workflow em ci.yml (name: CI)
+    types:
+      - completed
     branches:
       - main
 
@@ -12,12 +18,18 @@ env:
   STACK_FILE: deploy/stack.yml
   ENV_FILE: /opt/envs/{env-file-name}.env
   SERVICE_NAME: {STACK_NAME}_web
+  # SHA do commit testado pelo CI. Em workflow_run, github.sha aponta para o HEAD do
+  # branch padrão no momento do evento, NÃO para o commit testado — usar head_sha.
+  COMMIT_SHA: ${{ github.event.workflow_run.head_sha }}
   # Descomente se o projeto usar Alembic:
   # RUN_ALEMBIC: "true"
 
 jobs:
   deploy:
     runs-on: [self-hosted, linux, swarm]
+
+    # Gate: só faz deploy se o CI concluiu com sucesso. Se o CI falhar, o deploy NÃO roda.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     permissions:
       contents: read
@@ -30,11 +42,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # Checkout do commit EXATO testado pelo CI (não do HEAD atual da main).
+          ref: ${{ env.COMMIT_SHA }}
 
       - name: Define image name
         run: |
           IMAGE_NAME=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
-          echo "IMAGE=ghcr.io/${IMAGE_NAME}:${GITHUB_SHA}" >> "$GITHUB_ENV"
+          echo "IMAGE=ghcr.io/${IMAGE_NAME}:${COMMIT_SHA}" >> "$GITHUB_ENV"
           echo "IMAGE_LATEST=ghcr.io/${IMAGE_NAME}:latest" >> "$GITHUB_ENV"
 
       - name: Login to GHCR
@@ -53,7 +68,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            CACHE_BUST=${{ github.sha }}
+            CACHE_BUST=${{ env.COMMIT_SHA }}
           tags: |
             ${{ env.IMAGE }}
             ${{ env.IMAGE_LATEST }}
@@ -125,14 +140,14 @@ jobs:
 
             image_count=$(docker service ps "${SERVICE}" \
               --filter "desired-state=running" \
-              --format '{{.Image}}' | grep -c "${GITHUB_SHA}" || true)
+              --format '{{.Image}}' | grep -c "${COMMIT_SHA}" || true)
 
             echo "Réplicas: ${replicas_line} | Running: ${running} | Mesma tag SHA: ${image_count}/${running}"
 
             if [ "${replicas_line}" = "3/3" ] && [ "${running}" -eq 3 ] && [ "${image_count}" -eq 3 ]; then
               stable_count=$((stable_count + 1))
               if [ "${stable_count}" -ge "${STABLE_REQUIRED}" ]; then
-                echo "Deploy estável: 3/3 na tag ${GITHUB_SHA}."
+                echo "Deploy estável: 3/3 na tag ${COMMIT_SHA}."
                 exit 0
               fi
             else
