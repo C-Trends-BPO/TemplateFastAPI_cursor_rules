@@ -958,10 +958,33 @@ jobs:
           # Confirma que a imagem no registry contém o código do commit (ex.: trecho de index.html)
           # Ver implementação em .github/workflows/deploy-swarm.yml
 
-      - name: Validate Swarm cluster
+      - name: Validate Swarm cluster and network
         run: |
+          set -euo pipefail
+
+          echo "Validando managers do Docker Swarm..."
           docker node ls
-          docker network ls | grep app_network
+
+          if ! docker info --format '{{.Swarm.LocalNodeState}}' | grep -qx active; then
+            echo "ERRO: Docker Swarm não está ativo."
+            exit 1
+          fi
+
+          if ! docker info --format '{{.Swarm.ControlAvailable}}' | grep -qx true; then
+            echo "ERRO: O runner não está executando em um manager."
+            exit 1
+          fi
+
+          if ! docker network inspect app_network >/dev/null 2>&1; then
+            echo "Rede app_network não encontrada. Criando rede overlay..."
+            docker network create \
+              --driver overlay \
+              --attachable \
+              app_network
+          fi
+
+          docker network inspect app_network \
+            --format 'Rede={{.Name}} Driver={{.Driver}} Scope={{.Scope}} Attachable={{.Attachable}}'
 
       - name: Run database migrations
         run: |

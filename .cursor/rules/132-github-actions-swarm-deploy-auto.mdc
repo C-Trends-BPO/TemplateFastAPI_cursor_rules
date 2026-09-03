@@ -17,6 +17,7 @@ Complementa `130-fastapi-swarm-deploy-manual.mdc` e `131-docker-swarm-stack-auto
 - Se o projeto **não** tiver `ci.yml`, **perguntar** ao usuário antes de usar `on: push`.
 - Em `workflow_run`, usar **`github.event.workflow_run.head_sha`** (não `github.sha`) — commit testado pelo CI. Aplicar em `checkout` (`ref`), tag GHCR, `CACHE_BUST` e no grep do `Wait for replicas`. Sugestão: `env.COMMIT_SHA`.
 - Build GHCR com `CACHE_BUST=${{ env.COMMIT_SHA }}`; `docker pull` antes do deploy.
+- Step **Validate Swarm cluster and network**: Swarm `active`, runner manager, e `app_network` overlay (cria se ausente).
 - `docker stack deploy --with-registry-auth`; wait **600s** com validação `3/3` na mesma tag SHA.
 - `STACK_NAME` fixo entre deploys; `.env` real em `/opt/envs/{app}.env` (não versionar).
 - Alembic opcional — **não** usar `manage.py migrate` em FastAPI.

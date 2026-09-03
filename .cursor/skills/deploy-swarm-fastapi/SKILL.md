@@ -37,7 +37,7 @@ GitHub push main
 
 **1 push na main = 1 run de CI + 0 ou 1 run de Deploy** (o deploy só existe se o CI ficar verde).
 
-- Rede overlay: `app_network` (externa)
+- Rede overlay: `app_network` (externa; o workflow valida Swarm ativo + manager e cria a rede se ausente)
 - Portas: `mode: host`; réplicas `3`, `max_replicas_per_node: 1`
 - Rolling update: **`stop-first`** (obrigatório com host port)
 - `.env` real: `/opt/envs/{app}.env` (`chmod 600`) — nunca no Git
@@ -140,7 +140,7 @@ Aplicar `head_sha` (`COMMIT_SHA`) em:
 runs-on: [self-hosted, linux, swarm]
 ```
 
-Fluxo: gate (`workflow_run.conclusion == 'success'`) → checkout `ref: COMMIT_SHA` → build/push GHCR (`CACHE_BUST=COMMIT_SHA`) → `docker pull` → validar cluster + `.env` → Alembic opcional → `stack deploy --with-registry-auth` → wait 600s (`3/3` mesma tag `COMMIT_SHA`).
+Fluxo: gate (`workflow_run.conclusion == 'success'`) → checkout `ref: COMMIT_SHA` → build/push GHCR (`CACHE_BUST=COMMIT_SHA`) → `docker pull` → validar Swarm (ativo + manager) + criar `app_network` se ausente + `.env` → Alembic opcional → `stack deploy --with-registry-auth` → wait 600s (`3/3` mesma tag `COMMIT_SHA`).
 
 Variáveis adaptar por projeto:
 
